@@ -1,4 +1,4 @@
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { USER_ROLES } from '../../../enums/user';
 interface Education {
   degree: string;
@@ -14,6 +14,9 @@ export type IUser = {
   email: string;
   password: string;
   location?: string;
+  planPurchasedAt?: Date;
+  plan?: Types.ObjectId;
+  postLimit?: number | 'UNLIMITED';
   profile?: string;
   NIDOrPassportNo?: string;
   education?: Education[];

@@ -27,7 +27,7 @@ const createSpace = catchAsync(async (req: Request, res: Response) => {
       : [spaceData.facilities],
   };
 
-  const result = await SpaceService.createSpaceToDB(data);
+  const result = await SpaceService.createSpaceToDB(data, id.toString());
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,

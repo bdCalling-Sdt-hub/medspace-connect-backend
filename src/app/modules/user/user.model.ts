@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import { StatusCodes } from 'http-status-codes';
-import { model, Schema } from 'mongoose';
+import { model, Schema, Types } from 'mongoose';
 import config from '../../../config';
 import { USER_ROLES } from '../../../enums/user';
 import ApiError from '../../../errors/ApiError';
@@ -33,7 +33,19 @@ const userSchema = new Schema<IUser, UserModal>(
       select: 0,
       minlength: 8,
     },
-
+    plan: {
+      type: Types.ObjectId,
+      ref: 'Package',
+      required: false,
+    },
+    planPurchasedAt: {
+      type: Date,
+      required: false,
+    },
+    postLimit: {
+      type: Number || 'UNLIMITED',
+      required: false,
+    },
     location: {
       type: String,
       required: false,

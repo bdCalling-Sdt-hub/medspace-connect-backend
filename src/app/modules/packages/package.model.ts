@@ -14,6 +14,7 @@ const packageSchema = new Schema<IPackage, PackageModel>(
       type: Number,
       required: true,
     },
+
     features: {
       type: [String],
       required: true,

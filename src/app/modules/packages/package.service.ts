@@ -63,10 +63,41 @@ const deletePackageFromDB = async (id: string): Promise<IPackage | null> => {
   return result;
 };
 
+const buyPackageToDB = async (
+  id: string,
+  user: any
+): Promise<IPackage | null> => {
+  const isExistPackage = await Package.findOne({ _id: id });
+  if (!isExistPackage) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Package not found');
+  }
+  const isExistUser = await User.findOne({
+    _id: user.id,
+    role: USER_ROLES.SPACEPROVIDER,
+  });
+  if (!isExistUser) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+  const updateUser = await User.findByIdAndUpdate(
+    user.id,
+    {
+      plan: id,
+      postLimit: isExistPackage.allowedSpaces,
+      planPurchasedAt: new Date(),
+    },
+    { new: true }
+  );
+  if (!updateUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to buy package');
+  }
+  return isExistPackage;
+};
+
 export const PackageService = {
   createPackageToDB,
   deletePackageFromDB,
   updatePackageToDB,
   getAllPackagesFromDB,
   getSinglePackageFromDB,
+  buyPackageToDB,
 };

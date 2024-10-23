@@ -20,6 +20,11 @@ router.patch(
   validateRequest(PackageValidation.updatePackageZodSchema),
   PackageController.updatePackage
 );
+router.post(
+  '/buy/:id',
+  auth(USER_ROLES.SPACEPROVIDER),
+  PackageController.buyPackage
+);
 router.delete(
   '/delete/:id',
   auth(USER_ROLES.ADMIN),

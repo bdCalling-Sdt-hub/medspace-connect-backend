@@ -5,6 +5,7 @@ import sendResponse from '../../../shared/sendResponse';
 import ApiError from '../../../errors/ApiError';
 import { USER_ROLES } from '../../../enums/user';
 import catchAsync from '../../../shared/catchAsync';
+import { User } from '../user/user.model';
 
 const createPackage = catchAsync(async (req: Request, res: Response) => {
   const { ...packageData } = req.body;
@@ -12,7 +13,11 @@ const createPackage = catchAsync(async (req: Request, res: Response) => {
   if (!user) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
   }
-  if (user.role !== USER_ROLES.ADMIN) {
+  const isExistAdmin = await User.findOne({
+    _id: user.id,
+    role: USER_ROLES.ADMIN,
+  });
+  if (!isExistAdmin) {
     throw new ApiError(StatusCodes.FORBIDDEN, 'Forbidden');
   }
   const result = await PackageService.createPackageToDB(packageData, user);
@@ -57,7 +62,11 @@ const updatePackage = catchAsync(async (req: Request, res: Response) => {
   if (!user) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
   }
-  if (user.role !== USER_ROLES.ADMIN) {
+  const isExistAdmin = await User.findOne({
+    _id: user.id,
+    role: USER_ROLES.ADMIN,
+  });
+  if (!isExistAdmin) {
     throw new ApiError(StatusCodes.FORBIDDEN, 'Forbidden');
   }
 
@@ -75,6 +84,17 @@ const updatePackage = catchAsync(async (req: Request, res: Response) => {
 
 const deletePackage = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
+  const user = req.user;
+  if (!user) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
+  }
+  const isExistAdmin = await User.findOne({
+    _id: user.id,
+    role: USER_ROLES.ADMIN,
+  });
+  if (!isExistAdmin) {
+    throw new ApiError(StatusCodes.FORBIDDEN, 'Forbidden');
+  }
   const result = await PackageService.deletePackageFromDB(id.toString());
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -83,10 +103,33 @@ const deletePackage = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const buyPackage = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const user = req.user;
+  if (!user) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, 'You are not authorized');
+  }
+  const isExistSpaceProvider = await User.findOne({
+    _id: user.id,
+    role: USER_ROLES.SPACEPROVIDER,
+  });
+  if (!isExistSpaceProvider) {
+    throw new ApiError(StatusCodes.FORBIDDEN, 'Forbidden');
+  }
+  const result = await PackageService.buyPackageToDB(id.toString(), user);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Package bought successfully',
+    data: result,
+  });
+});
+
 export const PackageController = {
   createPackage,
   getSinglePackage,
   getAllPackages,
   deletePackage,
   updatePackage,
+  buyPackage,
 };
