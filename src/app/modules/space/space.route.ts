@@ -14,7 +14,7 @@ router.post(
   SpaceController.createSpace
 );
 router.get('/filter', SpaceController.filterSpaces);
-
+router.get('/providers', SpaceController.getProviders);
 router.patch(
   '/:id',
   auth(USER_ROLES.SPACEPROVIDER),

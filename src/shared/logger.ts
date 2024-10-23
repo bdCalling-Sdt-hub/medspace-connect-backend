@@ -26,7 +26,7 @@ const myFormat = printf(
 
 const logger = createLogger({
   level: 'info',
-  format: combine(label({ label: 'SERVER-NAME' }), timestamp(), myFormat),
+  format: combine(label({ label: 'MEDSPACE_CONNECT' }), timestamp(), myFormat),
   transports: [
     new transports.Console(),
     new DailyRotateFile({

@@ -12,7 +12,7 @@ const createUser = catchAsync(
     sendResponse(res, {
       success: true,
       statusCode: StatusCodes.OK,
-      message: 'User created successfully',
+      message: 'Registration successful please check your email for OTP.',
       data: result,
     });
   }

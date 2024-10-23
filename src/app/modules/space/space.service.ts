@@ -4,6 +4,8 @@ import { User } from '../user/user.model';
 import { ISpace } from './space.interface';
 import { Space } from './space.model';
 import unlinkFile from '../../../shared/unlinkFile';
+import { IUser } from '../user/user.interface';
+import { USER_ROLES } from '../../../enums/user';
 
 const createSpaceToDB = async (payload: ISpace): Promise<ISpace> => {
   const result = await Space.create(payload);
@@ -186,6 +188,15 @@ const filterSpacesFromDB = async (query: any): Promise<ISpace[]> => {
 
   return result;
 };
+const getProvidersFromDB = async (): Promise<IUser[]> => {
+  const result = await User.find({ role: USER_ROLES.SPACEPROVIDER }).select(
+    '-password -refreshToken -createdAt -updatedAt -role -authorization -verified'
+  );
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Providers not found!');
+  }
+  return result;
+};
 export const SpaceService = {
   createSpaceToDB,
   updateSpaceToDB,
@@ -195,4 +206,5 @@ export const SpaceService = {
   removeSpaceFacilitiesToDB,
   getSpaceByIdFromDB,
   getAllSpacesFromDB,
+  getProvidersFromDB,
 };
