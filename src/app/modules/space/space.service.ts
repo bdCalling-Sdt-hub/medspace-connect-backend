@@ -55,7 +55,7 @@ const createSpaceToDB = async (
   });
 
   if (typeof isExistProvider.postLimit === 'number') {
-    if (posts.length >= isExistProvider.postLimit - 1) {
+    if (posts.length >= isExistProvider.postLimit) {
       throw new ApiError(
         StatusCodes.BAD_REQUEST,
         'You have reached your post limit for this 30-day period!'
