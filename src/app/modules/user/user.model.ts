@@ -35,7 +35,7 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     location: {
       type: String,
-      required: true,
+      required: false,
     },
     profile: {
       type: String,
@@ -52,7 +52,7 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     NIDOrPassportNo: {
       type: String,
-      required: true,
+      required: false,
     },
     authentication: {
       type: {

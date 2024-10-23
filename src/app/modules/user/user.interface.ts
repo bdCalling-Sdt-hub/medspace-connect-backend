@@ -13,7 +13,7 @@ export type IUser = {
   contact: string;
   email: string;
   password: string;
-  location: string;
+  location?: string;
   profile?: string;
   NIDOrPassportNo?: string;
   education?: Education[];

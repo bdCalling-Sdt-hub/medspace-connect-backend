@@ -5,7 +5,6 @@ import fileUploadHandler from '../../middlewares/fileUploadHandler';
 import validateRequest from '../../middlewares/validateRequest';
 import { UserController } from './user.controller';
 import { UserValidation } from './user.validation';
-import { SpaceProviderRoutes } from '../spaceProvider/spaceProvider.route';
 import { SpaceSeekerRoutes } from '../spaceSeeker/spaceSeeker.route';
 const router = express.Router();
 
@@ -26,7 +25,5 @@ router
     fileUploadHandler(),
     UserController.updateProfile
   );
-router.use('/space-provider', SpaceProviderRoutes);
-router.use('/space-seeker', SpaceSeekerRoutes);
 
 export const UserRoutes = router;
