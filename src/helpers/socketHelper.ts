@@ -1,16 +1,24 @@
-import colors from 'colors';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import { logger } from '../shared/logger';
 
-const socket = (io: Server) => {
-  io.on('connection', socket => {
-    logger.info(colors.blue('A user connected'));
+const chatNamespace = (io: Server) => {
+  io.on('connection', (socket: Socket) => {
+    logger.info('A user connected to chat');
 
-    //disconnect
+    socket.on('join_conversation', (conversationId: string) => {
+      socket.join(`conversation::${conversationId}`);
+      logger.info(`User joined conversation: ${conversationId}`);
+    });
+
+    socket.on('leave_conversation', (conversationId: string) => {
+      socket.leave(`conversation::${conversationId}`);
+      logger.info(`User left conversation: ${conversationId}`);
+    });
+
     socket.on('disconnect', () => {
-      logger.info(colors.red('A user disconnect'));
+      logger.info('A user disconnected from chat');
     });
   });
 };
 
-export const socketHelper = { socket };
+export const socketHelper = { chatNamespace };

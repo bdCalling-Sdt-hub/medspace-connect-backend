@@ -34,9 +34,8 @@ async function main() {
         origin: '*',
       },
     });
-    socketHelper.socket(io);
-    //@ts-ignore
-    global.io = io;
+    socketHelper.chatNamespace(io);
+    app.set('io', io);
   } catch (error) {
     errorLogger.error(colors.red('🤢 Failed to connect Database'));
   }
