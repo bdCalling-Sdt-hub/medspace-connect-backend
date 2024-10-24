@@ -5,7 +5,7 @@ import { Conversation } from './conversation.model';
 import { Space } from '../space/space.model';
 import { User } from '../user/user.model';
 import { USER_ROLES } from '../../../enums/user';
-import { Types } from 'mongoose';
+import { Types, UpdateWriteOpResult } from 'mongoose';
 import { Server } from 'socket.io';
 import { IMessage } from './message/message.interface';
 import { Message } from './message/message.model';
@@ -71,7 +71,7 @@ const getConversation = async (
   conversationId: string,
   userId: string
 ): Promise<IConversation> => {
-  const conversation = await Conversation.findById(conversationId);
+  const conversation: any = await Conversation.findById(conversationId);
   if (!conversation) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
   }
@@ -155,9 +155,39 @@ const sendMessageToDB = async (
   return message;
 };
 
+const markMessagesAsRead = async (
+  conversationId: string,
+  userId: string,
+  io: Server
+): Promise<any> => {
+  const conversation = await getConversation(conversationId, userId);
+  if (!conversation) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
+  }
+
+  const updatedMessages = await Message.updateMany(
+    {
+      conversationID: conversationId,
+      to: userId,
+      status: 'unread',
+    },
+    { status: 'read' }
+  );
+
+  if (updatedMessages.modifiedCount > 0) {
+    io.to(`conversation::${conversationId}`).emit('messages_read', { userId });
+  }
+  const allMessages = await Message.find({
+    conversationID: conversationId,
+    to: userId,
+  });
+  return allMessages;
+};
+
 export const ConversationService = {
   startConversation,
   addMessage,
   getConversation,
   sendMessageToDB,
+  markMessagesAsRead,
 };

@@ -23,4 +23,10 @@ router.get(
   ConversationController.getConversation
 );
 
+router.patch(
+  '/:conversationId/read',
+  auth(USER_ROLES.SPACESEEKER, USER_ROLES.SPACEPROVIDER),
+  ConversationController.markMessagesAsRead
+);
+
 export const ConversationRoutes = router;

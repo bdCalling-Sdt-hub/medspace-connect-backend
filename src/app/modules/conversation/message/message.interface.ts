@@ -6,6 +6,7 @@ export type IMessage = {
   conversationID: Types.ObjectId;
   spaceID: Types.ObjectId;
   message: string;
+  status?: 'unread' | 'read';
   data: object;
   date: string;
 };

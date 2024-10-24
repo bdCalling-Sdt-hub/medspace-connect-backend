@@ -86,9 +86,29 @@ const sendMessage = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const markMessagesAsRead = catchAsync(async (req: Request, res: Response) => {
+  const { conversationId } = req.params;
+  const userId = req.user.id;
+  const io: Server = req.app.get('io');
+
+  const result = await ConversationService.markMessagesAsRead(
+    conversationId,
+    userId,
+    io
+  );
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Messages marked as read successfully',
+    data: result,
+  });
+});
+
 export const ConversationController = {
   startConversation,
   addMessage,
   getConversation,
   sendMessage,
+  markMessagesAsRead,
 };

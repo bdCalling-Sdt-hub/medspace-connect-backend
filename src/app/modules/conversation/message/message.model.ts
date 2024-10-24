@@ -35,6 +35,12 @@ const messageSchema = new Schema<IMessage, MessageModel>(
       type: Object,
       required: true,
     },
+    status: {
+      type: String,
+      required: false,
+      enum: ['unread', 'read'],
+      default: 'unread',
+    },
     date: {
       type: String,
       required: true,
