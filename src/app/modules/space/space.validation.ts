@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { SPACE_STATUS } from '../../../enums/space';
 
 const createSpaceZodSchema = z.object({
   title: z.string({ required_error: 'title is required' }),
@@ -28,6 +29,11 @@ const updateSpaceZodSchema = z.object({
     .optional(),
   description: z
     .string({ invalid_type_error: 'description must be a string' })
+    .optional(),
+  status: z
+    .enum([SPACE_STATUS.ACTIVE, SPACE_STATUS.OCCUPIED], {
+      invalid_type_error: 'status must be ACTIVE or OCCUPIED',
+    })
     .optional(),
 });
 

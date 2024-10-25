@@ -48,7 +48,7 @@ const messageSchema = new Schema<IMessage, MessageModel>(
   },
   { timestamps: true }
 );
-
+messageSchema.index({ message: 'text' });
 messageSchema.pre('save', async function (next) {
   const isExistFrom = await User.findById(this.from);
   if (!isExistFrom) {

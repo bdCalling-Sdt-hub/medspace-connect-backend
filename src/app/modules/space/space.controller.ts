@@ -5,6 +5,7 @@ import catchAsync from '../../../shared/catchAsync';
 import { SpaceService } from './space.service';
 import { SpaceValidation } from './space.validation';
 import ApiError from '../../../errors/ApiError';
+import { USER_ROLES } from '../../../enums/user';
 
 const createSpace = catchAsync(async (req: Request, res: Response) => {
   let spaceData = req.body.data;
@@ -40,6 +41,12 @@ const updateSpace = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const data = req.body;
   const userId = req.user.id;
+  if (!req.user || req.user.role !== USER_ROLES.SPACEPROVIDER) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'You are not authorized to update this space!'
+    );
+  }
   if (req.files && 'spaceImages' in req.files) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,

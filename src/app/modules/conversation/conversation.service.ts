@@ -11,6 +11,8 @@ import { IMessage } from './message/message.interface';
 import { Message } from './message/message.model';
 import { convertISOToHumanReadable } from '../../../shared/dateHelper';
 import { kafkaHelper } from '../../../helpers/kafkaHelper';
+import { NotificationService } from '../notifications/notification.service';
+import { isUserViewingConversation } from '../../../helpers/socketHelper';
 
 const startConversation = async (
   spaceSeekerUserId: string,
@@ -92,7 +94,7 @@ const addMessage = async (
   senderId: string,
   message: string,
   mediaFiles: string[] = []
-): Promise<IMessage> => {
+): Promise<any> => {
   const conversation = await Conversation.findById(conversationId);
   if (!conversation) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
@@ -117,8 +119,8 @@ const addMessage = async (
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to add message');
   }
-
-  return result;
+  const messageData = await Message.findById(result._id).populate('from to');
+  return messageData;
 };
 
 const sendMessageToDB = async (
@@ -127,36 +129,35 @@ const sendMessageToDB = async (
   message: string,
   io: Server,
   mediaFiles: string[] = []
-) => {
-  const conversation = await getConversation(conversationId, senderId);
-  if (!conversation) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
-  }
-  if (
-    conversation.spaceProvider.toString() !== senderId &&
-    conversation.spaceSeeker.toString() !== senderId
-  ) {
-    throw new ApiError(StatusCodes.FORBIDDEN, 'Access denied');
-  }
-
-  const newMessage = await addMessage(
+): Promise<IMessage> => {
+  const newMessage: any = await addMessage(
     conversationId,
     senderId,
     message,
     mediaFiles
   );
-  if (!newMessage) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to add message');
-  }
 
-  // Send message to Kafka
+  // Publish message to Kafka
   await kafkaHelper.producer.send({
     topic: 'new-messages',
     messages: [{ value: JSON.stringify(newMessage) }],
   });
 
-  // Emit the message directly via Socket.IO
-  io.emit(`conversation::${conversationId}`, newMessage);
+  // Check if the recipient is not currently viewing the conversation
+  const recipientId = newMessage.to;
+  if (!isUserViewingConversation(recipientId.toString(), conversationId)) {
+    // Send notification
+    await NotificationService.sendNotificationToReceiver(
+      {
+        receiverId: recipientId,
+        title: 'New Message',
+        message: `${newMessage.from.name} sent you a new message`,
+        type: 'new_message',
+        data: { conversationId, messageId: newMessage._id },
+      },
+      io
+    );
+  }
 
   return newMessage;
 };
@@ -171,7 +172,7 @@ const markMessagesAsRead = async (
     throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
   }
 
-  const updatedMessages = await Message.updateMany(
+  const updatedMessages: any = await Message.updateMany(
     {
       conversationID: conversationId,
       to: userId,
@@ -181,13 +182,91 @@ const markMessagesAsRead = async (
   );
 
   if (updatedMessages.modifiedCount > 0) {
-    io.to(`conversation::${conversationId}`).emit('messages_read', { userId });
+    // Publish to Kafka
+    await kafkaHelper.producer.send({
+      topic: 'messages-read',
+      messages: [{ value: JSON.stringify({ conversationId, userId }) }],
+    });
+
+    // Clear notifications related to this conversation for this user
+    await NotificationService.clearNotifications(userId, 'new_message', {
+      conversationId,
+    });
   }
+
   const allMessages = await Message.find({
     conversationID: conversationId,
     to: userId,
   });
   return allMessages;
+};
+
+const getUserConversations = async (
+  userId: string
+): Promise<IConversation[]> => {
+  const conversations = await Conversation.find({
+    $or: [{ spaceSeeker: userId }, { spaceProvider: userId }],
+  }).populate('spaceId spaceSeeker spaceProvider');
+  return conversations;
+};
+
+const deleteConversation = async (
+  conversationId: string,
+  userId: string
+): Promise<void> => {
+  const conversation = await getConversation(conversationId, userId);
+  if (!conversation) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
+  }
+  await Conversation.findByIdAndDelete(conversationId);
+  await Message.deleteMany({ conversationID: conversationId });
+};
+
+// const updateConversationStatus = async (
+//   conversationId: string,
+//   userId: string,
+//   isActive: boolean
+// ): Promise<IConversation> => {
+//   const conversation = await getConversation(conversationId, userId);
+//   if (!conversation) {
+//     throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
+//   }
+//   const updatedConversation = await Conversation.findByIdAndUpdate(
+//     conversationId,
+//     { isActive },
+//     { new: true }
+//   );
+//   if (!updatedConversation) {
+//     throw new ApiError(
+//       StatusCodes.BAD_REQUEST,
+//       'Failed to update conversation'
+//     );
+//   }
+//   return updatedConversation;
+// };
+
+const getUnreadMessageCount = async (userId: string): Promise<number> => {
+  const count = await Message.countDocuments({
+    to: userId,
+    status: 'unread',
+  });
+  return count;
+};
+
+const searchMessages = async (
+  conversationId: string,
+  userId: string,
+  query: string
+): Promise<IMessage[]> => {
+  const conversation = await getConversation(conversationId, userId);
+  if (!conversation) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
+  }
+  const messages = await Message.find({
+    conversationID: conversationId,
+    $text: { $search: query },
+  }).sort({ score: { $meta: 'textScore' } });
+  return messages;
 };
 
 export const ConversationService = {
@@ -196,4 +275,9 @@ export const ConversationService = {
   getConversation,
   sendMessageToDB,
   markMessagesAsRead,
+  getUserConversations,
+  deleteConversation,
+  // updateConversationStatus,
+  getUnreadMessageCount,
+  searchMessages,
 };

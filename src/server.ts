@@ -3,10 +3,12 @@ import mongoose from 'mongoose';
 import { Server } from 'socket.io';
 import app from './app';
 import config from './config';
-import { socketHelper } from './helpers/socketHelper';
+import { chatNamespace } from './helpers/socketHelper';
 import { errorLogger, logger } from './shared/logger';
 import { kafkaHelper } from './helpers/kafkaHelper';
 import { startMessageConsumer } from './workers/messageConsumer';
+import { startMessageReadConsumer } from './workers/messageReadConsumer';
+import { startNotificationConsumer } from './workers/notificationConsumer';
 
 //uncaught exception
 process.on('uncaughtException', error => {
@@ -39,11 +41,13 @@ async function main() {
         origin: '*',
       },
     });
-    socketHelper.chatNamespace(io);
+    chatNamespace(io);
     app.set('io', io);
 
-    // Start Kafka consumer
+    // Start Kafka consumers
     startMessageConsumer(io);
+    startMessageReadConsumer(io);
+    startNotificationConsumer(io);
   } catch (error) {
     errorLogger.error(
       colors.red('🤢 Failed to connect to Database or Kafka'),

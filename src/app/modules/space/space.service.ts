@@ -7,6 +7,7 @@ import unlinkFile from '../../../shared/unlinkFile';
 import { IUser } from '../user/user.interface';
 import { USER_ROLES } from '../../../enums/user';
 import { Package } from '../packages/package.model';
+import { SPACE_STATUS } from '../../../enums/space';
 
 const createSpaceToDB = async (
   payload: ISpace,
@@ -80,6 +81,14 @@ const updateSpaceToDB = async (
   }
   if (isExist.providerId.toString() !== userId) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'You are not authorized!');
+  }
+  if (payload.status) {
+    if (
+      payload.status !== SPACE_STATUS.ACTIVE &&
+      payload.status !== SPACE_STATUS.OCCUPIED
+    ) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid status!');
+    }
   }
   const result = await Space.findByIdAndUpdate(id, payload, { new: true });
   if (!result) {
@@ -231,7 +240,7 @@ const filterSpacesFromDB = async (query: any): Promise<ISpace[]> => {
     filter.price = { $gte: parseFloat(min), $lte: parseFloat(max) };
   }
 
-  const result = await Space.find(filter);
+  const result = await Space.find(filter, { status: SPACE_STATUS.ACTIVE });
 
   if (!result.length) {
     throw new ApiError(

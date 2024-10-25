@@ -31,4 +31,34 @@ router.patch(
   ConversationController.markMessagesAsRead
 );
 
+router.get(
+  '/',
+  auth(USER_ROLES.SPACESEEKER, USER_ROLES.SPACEPROVIDER),
+  ConversationController.getUserConversations
+);
+
+router.delete(
+  '/:conversationId',
+  auth(USER_ROLES.SPACESEEKER, USER_ROLES.SPACEPROVIDER),
+  ConversationController.deleteConversation
+);
+
+// router.patch(
+//   '/:conversationId/status',
+//   auth(USER_ROLES.SPACESEEKER, USER_ROLES.SPACEPROVIDER),
+//   ConversationController.updateConversationStatus
+// );
+
+router.get(
+  '/unread-count',
+  auth(USER_ROLES.SPACESEEKER, USER_ROLES.SPACEPROVIDER),
+  ConversationController.getUnreadMessageCount
+);
+
+router.get(
+  '/:conversationId/search',
+  auth(USER_ROLES.SPACESEEKER, USER_ROLES.SPACEPROVIDER),
+  ConversationController.searchMessages
+);
+
 export const ConversationRoutes = router;

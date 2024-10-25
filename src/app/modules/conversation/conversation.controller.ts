@@ -5,6 +5,10 @@ import sendResponse from '../../../shared/sendResponse';
 import { ConversationService } from './conversation.service';
 import ApiError from '../../../errors/ApiError';
 import { Server } from 'socket.io';
+import { NotificationService } from '../notifications/notification.service';
+import { Types } from 'mongoose';
+import { kafkaHelper } from '../../../helpers/kafkaHelper';
+import { IMessage } from './message/message.interface';
 
 const startConversation = catchAsync(async (req: Request, res: Response) => {
   const { spaceId } = req.body;
@@ -114,10 +118,86 @@ const markMessagesAsRead = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getUserConversations = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.id;
+  const result = await ConversationService.getUserConversations(userId);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'User conversations retrieved successfully',
+    data: result,
+  });
+});
+
+const deleteConversation = catchAsync(async (req: Request, res: Response) => {
+  const { conversationId } = req.params;
+  const userId = req.user.id;
+  await ConversationService.deleteConversation(conversationId, userId);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Conversation deleted successfully',
+  });
+});
+
+// const updateConversationStatus = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const { conversationId } = req.params;
+//     const { isActive } = req.body;
+//     const userId = req.user.id;
+//     const result = await ConversationService.updateConversationStatus(
+//       conversationId,
+//       userId,
+//       isActive
+//     );
+//     sendResponse(res, {
+//       statusCode: StatusCodes.OK,
+//       success: true,
+//       message: 'Conversation status updated successfully',
+//       data: result,
+//     });
+//   }
+// );
+
+const getUnreadMessageCount = catchAsync(
+  async (req: Request, res: Response) => {
+    const userId = req.user.id;
+    const result = await ConversationService.getUnreadMessageCount(userId);
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Unread message count retrieved successfully',
+      data: result,
+    });
+  }
+);
+
+const searchMessages = catchAsync(async (req: Request, res: Response) => {
+  const { conversationId } = req.params;
+  const { query } = req.query;
+  const userId = req.user.id;
+  const result = await ConversationService.searchMessages(
+    conversationId,
+    userId,
+    query as string
+  );
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: 'Messages searched successfully',
+    data: result,
+  });
+});
+
 export const ConversationController = {
   startConversation,
   addMessage,
   getConversation,
   sendMessage,
   markMessagesAsRead,
+  getUserConversations,
+  deleteConversation,
+  // updateConversationStatus,
+  getUnreadMessageCount,
+  searchMessages,
 };

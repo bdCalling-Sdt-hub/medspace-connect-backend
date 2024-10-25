@@ -27,6 +27,7 @@ router.patch(
   fileUploadHandler(),
   SpaceController.updateSpaceImages
 );
+
 router.patch(
   '/:id/facilities/add',
   auth(USER_ROLES.SPACEPROVIDER),

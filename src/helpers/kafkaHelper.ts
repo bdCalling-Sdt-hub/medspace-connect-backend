@@ -1,4 +1,4 @@
-import { Kafka } from 'kafkajs';
+import { Kafka, Consumer } from 'kafkajs';
 import config from '../config';
 
 const kafka = new Kafka({
@@ -11,17 +11,25 @@ const kafka = new Kafka({
 });
 
 const producer = kafka.producer();
-const consumer = kafka.consumer({ groupId: 'medspace-group' });
+const newMessageConsumer = kafka.consumer({ groupId: 'new-message-group' });
+const messageReadConsumer = kafka.consumer({ groupId: 'message-read-group' });
+const notificationConsumer = kafka.consumer({ groupId: 'notification-group' });
 
 export const kafkaHelper = {
   producer,
-  consumer,
+  newMessageConsumer,
+  messageReadConsumer,
+  notificationConsumer,
   connect: async () => {
     await producer.connect();
-    await consumer.connect();
+    await newMessageConsumer.connect();
+    await messageReadConsumer.connect();
+    await notificationConsumer.connect();
   },
   disconnect: async () => {
     await producer.disconnect();
-    await consumer.disconnect();
+    await newMessageConsumer.disconnect();
+    await messageReadConsumer.disconnect();
+    await notificationConsumer.disconnect();
   },
 };
