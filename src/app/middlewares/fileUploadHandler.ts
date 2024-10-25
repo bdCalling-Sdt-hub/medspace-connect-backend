@@ -94,7 +94,27 @@ const fileUploadHandler = () => {
         cb(new ApiError(StatusCodes.BAD_REQUEST, 'Only pdf supported'));
       }
     } else if (file.fieldname === 'messageFiles') {
-      cb(null, true);
+      if (
+        file.mimetype === 'image/jpeg' ||
+        file.mimetype === 'image/png' ||
+        file.mimetype === 'image/jpg' ||
+        file.mimetype === 'application/pdf' ||
+        file.mimetype ===
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || // .docx
+        file.mimetype === 'application/msword' || // .doc
+        file.mimetype ===
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation' || // .pptx
+        file.mimetype === 'application/vnd.ms-powerpoint' || // .ppt
+        file.mimetype ===
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || // .xlsx
+        file.mimetype === 'application/vnd.ms-excel' || // .xls
+        file.mimetype === 'text/plain' || // .txt
+        file.mimetype === 'application/rtf' // .rtf
+      ) {
+        cb(null, true);
+      } else {
+        cb(new ApiError(StatusCodes.BAD_REQUEST, 'This file is not supported'));
+      }
     } else {
       cb(new ApiError(StatusCodes.BAD_REQUEST, 'This file is not supported'));
     }
