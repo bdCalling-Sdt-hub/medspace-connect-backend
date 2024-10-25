@@ -36,6 +36,9 @@ const fileUploadHandler = () => {
         case 'doc':
           uploadDir = path.join(baseUploadDir, 'docs');
           break;
+        case 'messageFiles':
+          uploadDir = path.join(baseUploadDir, 'messageFiles');
+          break;
         default:
           throw new ApiError(StatusCodes.BAD_REQUEST, 'File is not supported');
       }
@@ -90,6 +93,8 @@ const fileUploadHandler = () => {
       } else {
         cb(new ApiError(StatusCodes.BAD_REQUEST, 'Only pdf supported'));
       }
+    } else if (file.fieldname === 'messageFiles') {
+      cb(null, true);
     } else {
       cb(new ApiError(StatusCodes.BAD_REQUEST, 'This file is not supported'));
     }
@@ -103,6 +108,7 @@ const fileUploadHandler = () => {
     { name: 'spaceImages', maxCount: 4 },
     { name: 'media', maxCount: 3 },
     { name: 'doc', maxCount: 3 },
+    { name: 'messageFiles', maxCount: 5 },
   ]);
   return upload;
 };

@@ -90,33 +90,29 @@ const getConversation = async (
 const addMessage = async (
   conversationId: string,
   senderId: string,
-  content: string,
-  contentType: 'text' | 'image' | 'video'
+  message: string,
+  mediaFiles: string[] = []
 ): Promise<IMessage> => {
   const conversation = await Conversation.findById(conversationId);
   if (!conversation) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
   }
 
-  if (
-    conversation.spaceSeeker.toString() !== senderId &&
-    conversation.spaceProvider.toString() !== senderId
-  ) {
-    throw new ApiError(StatusCodes.FORBIDDEN, 'Access denied');
-  }
-  const currentDate = new Date();
-  const humanReadableDate = convertISOToHumanReadable(
-    currentDate.toISOString()
-  );
   const newMessage: IMessage = {
     from: new Types.ObjectId(senderId),
-    to: new Types.ObjectId(senderId),
+    to: new Types.ObjectId(
+      senderId === conversation.spaceSeeker.toString()
+        ? conversation.spaceProvider.toString()
+        : conversation.spaceSeeker.toString()
+    ),
     conversationID: new Types.ObjectId(conversationId),
-    spaceID: new Types.ObjectId(conversation.spaceId),
-    message: content,
-    data: {},
-    date: humanReadableDate,
+    spaceID: conversation.spaceId,
+    message: message,
+    status: 'unread',
+    data: { mediaFiles },
+    date: new Date().toISOString(),
   };
+
   const result = await Message.create(newMessage);
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to add message');
@@ -128,9 +124,9 @@ const addMessage = async (
 const sendMessageToDB = async (
   conversationId: string,
   senderId: string,
-  content: string,
-  contentType: 'text' | 'image' | 'video',
-  io: Server
+  message: string,
+  io: Server,
+  mediaFiles: string[] = []
 ) => {
   const conversation = await getConversation(conversationId, senderId);
   if (!conversation) {
@@ -143,26 +139,26 @@ const sendMessageToDB = async (
     throw new ApiError(StatusCodes.FORBIDDEN, 'Access denied');
   }
 
-  const message = await addMessage(
+  const newMessage = await addMessage(
     conversationId,
     senderId,
-    content,
-    contentType
+    message,
+    mediaFiles
   );
-  if (!message) {
+  if (!newMessage) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to add message');
   }
 
   // Send message to Kafka
   await kafkaHelper.producer.send({
     topic: 'new-messages',
-    messages: [{ value: JSON.stringify(message) }],
+    messages: [{ value: JSON.stringify(newMessage) }],
   });
 
   // Emit the message directly via Socket.IO
-  io.emit(`conversation::${conversationId}`, message);
+  io.emit(`conversation::${conversationId}`, newMessage);
 
-  return message;
+  return newMessage;
 };
 
 const markMessagesAsRead = async (

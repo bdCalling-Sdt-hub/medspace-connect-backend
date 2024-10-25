@@ -2,6 +2,7 @@ import express from 'express';
 import { USER_ROLES } from '../../../enums/user';
 import auth from '../../middlewares/auth';
 import { ConversationController } from './conversation.controller';
+import fileUploadHandler from '../../middlewares/fileUploadHandler';
 
 const router = express.Router();
 
@@ -14,6 +15,7 @@ router.post(
 router.post(
   '/:conversationId/message',
   auth(USER_ROLES.SPACESEEKER, USER_ROLES.SPACEPROVIDER),
+  fileUploadHandler(),
   ConversationController.sendMessage
 );
 

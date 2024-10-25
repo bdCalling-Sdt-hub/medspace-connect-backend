@@ -68,16 +68,25 @@ const getConversation = catchAsync(async (req: Request, res: Response) => {
 
 const sendMessage = catchAsync(async (req: Request, res: Response) => {
   const { conversationId } = req.params;
-  const { content, contentType } = req.body;
+  const { message } = req.body;
   const userId = req.user.id;
   const io: Server = req.app.get('io');
+
+  let mediaFiles: string[] = [];
+  if (req.files && 'messageFiles' in req.files) {
+    mediaFiles = (req.files.messageFiles as Express.Multer.File[]).map(
+      file => `/messageFiles/${file.filename}`
+    );
+  }
+
   const result = await ConversationService.sendMessageToDB(
     conversationId,
     userId,
-    content,
-    contentType,
-    io
+    message,
+    io,
+    mediaFiles
   );
+
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,
     success: true,

@@ -1,8 +1,9 @@
 import { Kafka } from 'kafkajs';
+import config from '../config';
 
 const kafka = new Kafka({
   clientId: 'medspace-connect',
-  brokers: ['localhost:9092'],
+  brokers: [config.kafka_broker || 'localhost:9092'],
   retry: {
     initialRetryTime: 100,
     retries: 8,
