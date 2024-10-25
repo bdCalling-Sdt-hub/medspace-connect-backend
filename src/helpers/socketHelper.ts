@@ -9,6 +9,7 @@ const chatNamespace = (io: Server) => {
     socket.on('join_conversation', async ({ conversationId, userId }) => {
       socket.join(`conversation::${conversationId}`);
       logger.info(`User ${userId} joined conversation: ${conversationId}`);
+      logger.info(`Current rooms for socket: ${JSON.stringify(socket.rooms)}`);
 
       // Mark all unread messages as read
       await ConversationService.markMessagesAsRead(conversationId, userId, io);

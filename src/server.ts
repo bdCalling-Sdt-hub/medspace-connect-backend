@@ -5,6 +5,8 @@ import app from './app';
 import config from './config';
 import { socketHelper } from './helpers/socketHelper';
 import { errorLogger, logger } from './shared/logger';
+import { kafkaHelper } from './helpers/kafkaHelper';
+import { startMessageConsumer } from './workers/messageConsumer';
 
 //uncaught exception
 process.on('uncaughtException', error => {
@@ -15,8 +17,11 @@ process.on('uncaughtException', error => {
 let server: any;
 async function main() {
   try {
-    mongoose.connect(config.database_url as string);
+    await mongoose.connect(config.database_url as string);
     logger.info(colors.green('🚀 Database connected successfully'));
+
+    await kafkaHelper.connect();
+    logger.info(colors.green('🚀 Kafka connected successfully'));
 
     const port =
       typeof config.port === 'number' ? config.port : Number(config.port);
@@ -36,8 +41,15 @@ async function main() {
     });
     socketHelper.chatNamespace(io);
     app.set('io', io);
+
+    // Start Kafka consumer
+    startMessageConsumer(io);
   } catch (error) {
-    errorLogger.error(colors.red('🤢 Failed to connect Database'));
+    errorLogger.error(
+      colors.red('🤢 Failed to connect to Database or Kafka'),
+      error
+    );
+    process.exit(1);
   }
 
   //handle unhandleRejection

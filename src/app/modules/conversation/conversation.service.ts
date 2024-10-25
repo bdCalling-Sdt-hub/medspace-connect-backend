@@ -10,6 +10,7 @@ import { Server } from 'socket.io';
 import { IMessage } from './message/message.interface';
 import { Message } from './message/message.model';
 import { convertISOToHumanReadable } from '../../../shared/dateHelper';
+import { kafkaHelper } from '../../../helpers/kafkaHelper';
 
 const startConversation = async (
   spaceSeekerUserId: string,
@@ -151,7 +152,16 @@ const sendMessageToDB = async (
   if (!message) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to add message');
   }
+
+  // Send message to Kafka
+  await kafkaHelper.producer.send({
+    topic: 'new-messages',
+    messages: [{ value: JSON.stringify(message) }],
+  });
+
+  // Emit the message directly via Socket.IO
   io.emit(`conversation::${conversationId}`, message);
+
   return message;
 };
 
