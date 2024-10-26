@@ -9,7 +9,7 @@
     "lint:fix": "lint . --fix",
     "prettier:check": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
     "prettier:fix": "prettier --write .",
-    "module": "node cli/module/createModule.mjs",
+    "module": "node templateHelper/cli/module/createModule.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

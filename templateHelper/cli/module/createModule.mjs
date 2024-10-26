@@ -81,10 +81,10 @@ export const ${name.replace(
         )} = model<I${name.replace(
           name[0],
           name[0].toUpperCase()
-        )}, ${name.replace(name[0], name[0].toUpperCase())}Model>(
-          '${name}',
-          ${name}Schema
-        );
+        )}, ${name.replace(
+          name[0],
+          name[0].toUpperCase()
+        )}Model>('${name}', ${name}Schema);
         `;
       } else if (fileType === 'interface') {
         fileContent = `
@@ -139,7 +139,6 @@ import { ${name.replace(
         )}Service } from './${name}.service';
 // Define your ${fileType} logic here
 export const random${exportName}Function = catchAsync(async (req: Request, res: Response) => {
-  // Define your controller logic here
   const result = await ${name.replace(
     name[0],
     name[0].toUpperCase()
