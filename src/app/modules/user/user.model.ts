@@ -5,6 +5,7 @@ import config from '../../../config';
 import { USER_ROLES } from '../../../enums/user';
 import ApiError from '../../../errors/ApiError';
 import { IUser, UserModal } from './user.interface';
+import { Subscriber } from '../subscribers/subscriber.model';
 
 const userSchema = new Schema<IUser, UserModal>(
   {
@@ -120,6 +121,12 @@ userSchema.pre('save', async function (next) {
     this.password,
     Number(config.bcrypt_salt_rounds)
   );
+  const createSubscriber = await Subscriber.create({
+    email: this.email,
+  });
+  if (!createSubscriber) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Subscriber not created!');
+  }
   next();
 });
 
