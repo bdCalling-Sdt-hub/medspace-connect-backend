@@ -5,4 +5,10 @@ export const createAboutZodSchema = z.object({
   description: z.string({ required_error: 'Description is required' }),
   image: z.string().optional(),
 });
-export const AboutValidation = { createAboutZodSchema };
+
+export const updateAboutZodSchema = z.object({
+  title: z.string().optional(),
+  description: z.string().optional(),
+  image: z.string().optional(),
+});
+export const AboutValidation = { createAboutZodSchema, updateAboutZodSchema };

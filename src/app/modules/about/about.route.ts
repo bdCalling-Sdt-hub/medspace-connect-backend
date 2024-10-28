@@ -12,4 +12,13 @@ router.post(
   fileUploadHandler(),
   AboutController.createAbout
 );
+router.get('/', AboutController.getAllAbout);
+router.get('/:id', AboutController.getSingleAbout);
+router.patch(
+  '/:id',
+  auth(USER_ROLES.ADMIN),
+  fileUploadHandler(),
+  AboutController.updateAbout
+);
+router.delete('/:id', auth(USER_ROLES.ADMIN), AboutController.deleteAbout);
 export const AboutRoute = router;
