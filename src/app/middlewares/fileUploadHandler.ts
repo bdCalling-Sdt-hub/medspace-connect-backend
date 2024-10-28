@@ -30,6 +30,9 @@ const fileUploadHandler = () => {
         case 'spaceImages':
           uploadDir = path.join(baseUploadDir, 'spaceImages');
           break;
+        case 'aboutImage':
+          uploadDir = path.join(baseUploadDir, 'aboutImages');
+          break;
         case 'media':
           uploadDir = path.join(baseUploadDir, 'medias');
           break;
@@ -61,7 +64,11 @@ const fileUploadHandler = () => {
 
   //file filter
   const filterFilter = (req: Request, file: any, cb: FileFilterCallback) => {
-    if (file.fieldname === 'image' || file.fieldname === 'spaceImages') {
+    if (
+      file.fieldname === 'image' ||
+      file.fieldname === 'spaceImages' ||
+      file.fieldname === 'aboutImage'
+    ) {
       if (
         file.mimetype === 'image/jpeg' ||
         file.mimetype === 'image/png' ||
@@ -129,6 +136,7 @@ const fileUploadHandler = () => {
     { name: 'media', maxCount: 3 },
     { name: 'doc', maxCount: 3 },
     { name: 'messageFiles', maxCount: 5 },
+    { name: 'aboutImage', maxCount: 1 },
   ]);
   return upload;
 };
