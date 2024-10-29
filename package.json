@@ -10,7 +10,7 @@
     "prettier:check": "prettier --ignore-path .gitignore --write \"**/*.+(js|ts|json)\"",
     "prettier:fix": "prettier --write .",
     "module": "node templateHelper/cli/module/createModule.mjs",
-    "createModule":"node templateHelper/cli/module/createModule.mjs create",
+    "createModule": "node templateHelper/cli/module/createModule.mjs create",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -51,6 +51,7 @@
     "nodemailer": "^6.9.14",
     "npm": "^10.8.1",
     "socket.io": "^4.7.5",
+    "stripe": "^17.2.1",
     "winston": "^3.13.0",
     "winston-daily-rotate-file": "^5.0.0",
     "zod": "^3.23.8"

@@ -1,5 +1,4 @@
 import { Model, Types } from 'mongoose';
-import { SPACE_STATUS } from '../../../enums/space';
 
 export type IPackage = {
   name: string;
@@ -7,6 +6,8 @@ export type IPackage = {
   duration: number;
   features: string[];
   allowedSpaces: number;
+  stripeProductId?: string;
+  stripePriceId?: string;
 };
 
 export type PackageModel = Model<IPackage>;

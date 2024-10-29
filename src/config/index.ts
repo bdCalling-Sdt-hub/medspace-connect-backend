@@ -12,7 +12,11 @@ export default {
   stripe: {
     publishable_key: process.env.STRIPE_PUBLISHABLE_KEY,
     secret_key: process.env.STRIPE_SECRET_KEY,
+    account_id: process.env.STRIPE_ACCOUNT_ID,
+    webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
+    name_from_stripe: process.env.NAMEFROMSTRIPE,
   },
+  client_url: process.env.CLIENT_URL,
   jwt: {
     jwt_secret: process.env.JWT_SECRET,
     jwt_expire_in: process.env.JWT_EXPIRE_IN,

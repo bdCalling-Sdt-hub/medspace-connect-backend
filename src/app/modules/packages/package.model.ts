@@ -1,5 +1,6 @@
 import { model, Schema } from 'mongoose';
 import { IPackage, PackageModel } from './package.interface';
+
 const packageSchema = new Schema<IPackage, PackageModel>(
   {
     name: {
@@ -14,7 +15,6 @@ const packageSchema = new Schema<IPackage, PackageModel>(
       type: Number,
       required: true,
     },
-
     features: {
       type: [String],
       required: true,
@@ -23,8 +23,13 @@ const packageSchema = new Schema<IPackage, PackageModel>(
       type: Number,
       required: true,
     },
+    stripeProductId: {
+      type: String,
+    },
+    stripePriceId: {
+      type: String,
+    },
   },
-
   { timestamps: true }
 );
 

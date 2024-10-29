@@ -31,5 +31,35 @@ router.delete(
   PackageController.deletePackage
 );
 router.get('/get/:id', PackageController.getSinglePackage);
+router.post(
+  '/webhook',
+  express.raw({ type: 'application/json' }),
+  PackageController.handleWebhook
+);
+router.get(
+  '/payment/success',
+  auth(USER_ROLES.SPACEPROVIDER),
+  PackageController.handlePaymentSuccess
+);
+router.get(
+  '/payment/cancel',
+  auth(USER_ROLES.SPACEPROVIDER),
+  PackageController.handlePaymentCancel
+);
+router.get(
+  '/subscription/status',
+  auth(USER_ROLES.SPACEPROVIDER),
+  PackageController.getSubscriptionStatus
+);
+router.post(
+  '/subscription/cancel',
+  auth(USER_ROLES.SPACEPROVIDER),
+  PackageController.cancelSubscription
+);
+router.post(
+  '/subscription/change/:packageId',
+  auth(USER_ROLES.SPACEPROVIDER),
+  PackageController.changeSubscriptionPlan
+);
 
 export const packageRoutes = router;

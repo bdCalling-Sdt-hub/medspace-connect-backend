@@ -23,6 +23,7 @@ export type IUser = {
   occupation?: string;
   status: 'active' | 'delete';
   deviceTokens?: string[];
+  stripeCustomerId?: string;
   verified: boolean;
   authentication?: {
     isResetPassword: boolean;
