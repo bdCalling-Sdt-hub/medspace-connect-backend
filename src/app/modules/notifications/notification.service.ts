@@ -7,8 +7,6 @@ import { USER_ROLES } from '../../../enums/user';
 import { User } from '../user/user.model';
 import { kafkaHelper } from '../../../helpers/kafkaHelper';
 import { sendMulticastPushNotification } from '../../../helpers/firebaseNotificationHelper';
-import { firebaseAdmin } from '../../../firbase/firebase.config';
-import { errorLogger, logger } from '../../../shared/logger';
 const sendNotificationToReceiver = async (
   notification: INotification,
   io: Server
@@ -22,25 +20,7 @@ const sendNotificationToReceiver = async (
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to send notification!');
   }
 
-  // Get user's device tokens
-  const user = await User.findById(notification.receiverId);
-  if (user?.deviceTokens?.length) {
-    // Use multicast for better performance
-    await sendMulticastPushNotification(
-      user.deviceTokens,
-      {
-        title: notification.title,
-        body: notification.message,
-        data: {
-          type: notification.type || 'normal',
-          ...(notification.data || {}),
-        },
-      },
-      notification.receiverId.toString()
-    );
-  }
-
-  // Existing Kafka logic
+  // Publish to Kafka - let the consumer handle both Socket.IO and Push notifications
   await kafkaHelper.producer.send({
     topic: 'notifications',
     messages: [{ value: JSON.stringify(result) }],
@@ -71,7 +51,7 @@ const sendNotificationToAllUserOfARole = async (
     );
   }
 
-  // Get all users with their device tokens
+  // Get all users
   const users = await User.find({ role }, '_id deviceTokens');
   const notifications = users.map(user => ({
     ...notification,
@@ -79,36 +59,6 @@ const sendNotificationToAllUserOfARole = async (
   }));
 
   const result = await Notification.insertMany(notifications);
-  // Send push notifications in batches
-  const batchSize = 500; // FCM limits to 500 tokens per request
-  const usersWithTokens = users.filter(
-    user => (user.deviceTokens || []).length > 0
-  );
-
-  for (let i = 0; i < usersWithTokens.length; i += batchSize) {
-    const batch = usersWithTokens.slice(i, i + batchSize);
-    const tokenGroups = batch.map(user => ({
-      tokens: user.deviceTokens || [],
-      userId: user._id.toString(),
-    }));
-
-    await Promise.all(
-      tokenGroups.map(({ tokens, userId }) =>
-        sendMulticastPushNotification(
-          tokens,
-          {
-            title: notification.title,
-            body: notification.message,
-            data: {
-              type: notification.type || 'normal',
-              ...(notification.data || {}),
-            },
-          },
-          userId
-        )
-      )
-    );
-  }
 
   // Publish notifications to Kafka in batches
   for (let i = 0; i < result.length; i += 100) {
