@@ -77,6 +77,18 @@ const updateProfile = catchAsync(
 //manage device token
 const manageDeviceToken = catchAsync(async (req: Request, res: Response) => {
   const { token, action } = req.body;
+  if (!token || !action) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Token and action are required'
+    );
+  }
+  if (action !== 'add' && action !== 'remove') {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Invalid action action can only be add or remove'
+    );
+  }
   const userId = req.user.id;
   await UserService.manageDeviceToken(userId, token, action);
 

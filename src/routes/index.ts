@@ -8,6 +8,7 @@ import { NotificationRoutes } from '../app/modules/notifications/notification.ro
 import { FaqRoutes } from '../app/modules/faq/faq.route';
 import { SubscriberRoutes } from '../app/modules/subscribers/subscriber.route';
 import { AboutRoute } from '../app/modules/about/about.route';
+import { InfoRoute } from '../app/modules/info/info.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -46,6 +47,10 @@ const apiRoutes = [
   {
     path: '/about',
     route: AboutRoute,
+  },
+  {
+    path: '/info',
+    route: InfoRoute,
   },
 ];
 

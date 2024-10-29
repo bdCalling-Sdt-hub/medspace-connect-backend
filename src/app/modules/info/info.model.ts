@@ -3,15 +3,11 @@ import { IInfo, IInfoModel } from './info.interface';
 
 const infoSchema = new Schema<IInfo, IInfoModel>(
   {
-    termsAndConditions: {
+    name: {
       type: String,
       required: true,
     },
-    privacyPolicy: {
-      type: String,
-      required: true,
-    },
-    aboutUs: {
+    content: {
       type: String,
       required: true,
     },
