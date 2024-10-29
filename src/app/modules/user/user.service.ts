@@ -8,6 +8,8 @@ import unlinkFile from '../../../shared/unlinkFile';
 import generateOTP from '../../../util/generateOTP';
 import { IUser } from './user.interface';
 import { User } from './user.model';
+import { subscribeToTopic } from '../../../helpers/firebaseNotificationHelper';
+import { errorLogger } from '../../../shared/logger';
 
 const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
   //set role
@@ -76,8 +78,35 @@ const updateProfileToDB = async (
   return updateDoc;
 };
 
+const manageDeviceToken = async (
+  userId: string,
+  token: string,
+  action: 'add' | 'remove'
+) => {
+  try {
+    const update =
+      action === 'add'
+        ? { $addToSet: { deviceTokens: token } }
+        : { $pull: { deviceTokens: token } };
+
+    await User.findByIdAndUpdate(userId, update);
+
+    if (action === 'add') {
+      // Subscribe to role-based topic
+      const user = await User.findById(userId);
+      if (user?.role) {
+        await subscribeToTopic(token, `role_${user.role.toLowerCase()}`);
+      }
+    }
+  } catch (error) {
+    errorLogger.error(`Error ${action}ing device token:`, error);
+    throw error;
+  }
+};
+
 export const UserService = {
   createUserToDB,
   getUserProfileFromDB,
   updateProfileToDB,
+  manageDeviceToken,
 };

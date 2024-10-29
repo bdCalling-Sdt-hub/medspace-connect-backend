@@ -18,6 +18,12 @@ const createUserZodSchema = z.object({
   }),
 });
 
+const deviceTokenZodSchema = z.object({
+  token: z.string(),
+  action: z.enum(['add', 'remove']),
+});
+
 export const UserValidation = {
   createUserZodSchema,
+  deviceTokenZodSchema,
 };

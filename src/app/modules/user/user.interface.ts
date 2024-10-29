@@ -22,6 +22,7 @@ export type IUser = {
   education?: Education[];
   occupation?: string;
   status: 'active' | 'delete';
+  deviceTokens?: string[];
   verified: boolean;
   authentication?: {
     isResetPassword: boolean;
