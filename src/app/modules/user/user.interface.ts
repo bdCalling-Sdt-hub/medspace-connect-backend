@@ -11,12 +11,10 @@ export type IUser = {
   name: string;
   role: USER_ROLES;
   contact: string;
+  isSubscribed: boolean;
   email: string;
   password: string;
   location?: string;
-  planPurchasedAt?: Date;
-  plan?: Types.ObjectId;
-  postLimit?: number | 'UNLIMITED';
   profile?: string;
   NIDOrPassportNo?: string;
   education?: Education[];
@@ -24,7 +22,16 @@ export type IUser = {
   status: 'active' | 'delete';
   deviceTokens?: string[];
   stripeCustomerId?: string;
+  subscriptionId?: string;
+  subscriptionStatus?: 'active' | 'canceled' | 'past_due' | 'unpaid';
+  subscription?: Types.ObjectId;
+
+  trxId?: string;
   verified: boolean;
+  stripeAccountInfo?: {
+    stripeCustomerId?: string;
+    loginUrl?: string;
+  };
   authentication?: {
     isResetPassword: boolean;
     oneTimeCode: number;

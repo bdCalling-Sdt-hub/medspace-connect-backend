@@ -11,7 +11,7 @@ import { User } from './user.model';
 import { subscribeToTopic } from '../../../helpers/firebaseNotificationHelper';
 import { errorLogger } from '../../../shared/logger';
 
-const createUserToDB = async (payload: Partial<IUser>): Promise<IUser> => {
+const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
   //set role
   if (!payload.role) {
     payload.role = USER_ROLES.SPACESEEKER;

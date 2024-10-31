@@ -34,17 +34,17 @@ const userSchema = new Schema<IUser, UserModal>(
       select: 0,
       minlength: 8,
     },
-    plan: {
+    subscription: {
       type: Types.ObjectId,
-      ref: 'Package',
+      ref: 'Subscription',
       required: false,
     },
-    planPurchasedAt: {
-      type: Date,
-      required: false,
+    isSubscribed: {
+      type: Boolean,
+      default: false,
     },
-    postLimit: {
-      type: Number || 'UNLIMITED',
+    trxId: {
+      type: String,
       required: false,
     },
     location: {
@@ -72,6 +72,16 @@ const userSchema = new Schema<IUser, UserModal>(
       type: [String],
       default: [],
       required: false,
+    },
+    stripeAccountInfo: {
+      stripeCustomerId: {
+        type: String,
+        required: false,
+      },
+      loginUrl: {
+        type: String,
+        required: false,
+      },
     },
     authentication: {
       type: {

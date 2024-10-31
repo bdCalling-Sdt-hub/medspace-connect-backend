@@ -11,10 +11,7 @@ const packageSchema = new Schema<IPackage, PackageModel>(
       type: Number,
       required: true,
     },
-    duration: {
-      type: Number,
-      required: true,
-    },
+
     features: {
       type: [String],
       required: true,
@@ -26,8 +23,9 @@ const packageSchema = new Schema<IPackage, PackageModel>(
     stripeProductId: {
       type: String,
     },
-    stripePriceId: {
+    paymentLink: {
       type: String,
+      required: false,
     },
   },
   { timestamps: true }
