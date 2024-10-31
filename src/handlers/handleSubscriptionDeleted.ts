@@ -6,54 +6,50 @@ import ApiError from '../errors/ApiError';
 import { StatusCodes } from 'http-status-codes';
 
 export const handleSubscriptionDeleted = async (data: Stripe.Subscription) => {
-  // Retrieve the subscription from Stripe
-  const subscription = await stripe.subscriptions.retrieve(data.id);
-
-  // Find the current active subscription
-  const userSubscription = await Subscription.findOne({
-    stripeSubscriptionId: subscription.id,
-    status: 'active',
-  });
-
-  if (userSubscription) {
-    // Deactivate the subscription
-    await Subscription.findByIdAndUpdate(
-      userSubscription._id,
-      { status: 'canceled' },
+  try {
+    // Use a single query to find and update the subscription
+    const updatedSubscription = await Subscription.findOneAndUpdate(
+      {
+        stripeSubscriptionId: data.id,
+        status: 'active',
+      },
+      { status: data.status },
       { new: true }
     );
 
-    // Find the user associated with the subscription
-    const existingUser = await User.findById(userSubscription?.providerId);
-
-    if (existingUser) {
-      // Disable user access
-      const disabled = await User.findByIdAndUpdate(
-        existingUser._id,
-        {
-          isSubscribed: false,
-        },
-        { new: true }
-      );
-      if (!disabled) {
-        throw new ApiError(
-          StatusCodes.BAD_REQUEST,
-          'Failed to disable user access'
-        );
-      }
-      console.log({ message: 'User access disabled', disabled });
-    } else {
-      // User not found
+    if (!updatedSubscription) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
-        `User with ID: ${userSubscription.providerId} not found.`
+        `Subscription with ID: ${data.id} not found.`
       );
     }
-  } else {
-    // Subscription not found
+
+    // Use a single query to find and update the user
+    const updatedUser = await User.findByIdAndUpdate(
+      updatedSubscription.providerId,
+      {
+        isSubscribed: false,
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        `User with ID: ${updatedSubscription.providerId} not found.`
+      );
+    }
+
+    return {
+      subscription: updatedSubscription,
+      user: updatedUser,
+    };
+  } catch (error) {
+    if (error instanceof ApiError) throw error;
+
     throw new ApiError(
-      StatusCodes.NOT_FOUND,
-      `Subscription with ID: ${subscription.id} not found.`
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      'Error processing subscription deletion'
     );
   }
 };
