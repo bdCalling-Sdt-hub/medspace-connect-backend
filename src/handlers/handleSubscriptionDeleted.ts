@@ -11,7 +11,7 @@ export const handleSubscriptionDeleted = async (data: Stripe.Subscription) => {
 
   // Find the current active subscription
   const userSubscription = await Subscription.findOne({
-    customerId: subscription.customer,
+    stripeSubscriptionId: subscription.id,
     status: 'active',
   });
 
@@ -19,34 +19,41 @@ export const handleSubscriptionDeleted = async (data: Stripe.Subscription) => {
     // Deactivate the subscription
     await Subscription.findByIdAndUpdate(
       userSubscription._id,
-      { status: 'deactivated' },
+      { status: 'canceled' },
       { new: true }
     );
 
     // Find the user associated with the subscription
-    const existingUser = await User.findById(userSubscription?.userId);
+    const existingUser = await User.findById(userSubscription?.providerId);
 
     if (existingUser) {
       // Disable user access
-      await User.findByIdAndUpdate(
+      const disabled = await User.findByIdAndUpdate(
         existingUser._id,
         {
-          hasAccess: false,
+          isSubscribed: false,
         },
         { new: true }
       );
+      if (!disabled) {
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          'Failed to disable user access'
+        );
+      }
+      console.log({ message: 'User access disabled', disabled });
     } else {
       // User not found
       throw new ApiError(
         StatusCodes.NOT_FOUND,
-        `User with ID: ${userSubscription.userId} not found.`
+        `User with ID: ${userSubscription.providerId} not found.`
       );
     }
   } else {
     // Subscription not found
     throw new ApiError(
       StatusCodes.NOT_FOUND,
-      `Subscription with Customer ID: ${subscription.customer} not found.`
+      `Subscription with ID: ${subscription.id} not found.`
     );
   }
 };

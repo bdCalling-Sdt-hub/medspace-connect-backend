@@ -37,10 +37,9 @@ export const handleSubscriptionCreated = async (data: Stripe.Subscription) => {
 
       if (pricingPlan) {
         // Find the current active subscription
-        const currentActiveSubscription = await User.findOne({
-          _id: existingUser._id,
-          role: USER_ROLES.SPACEPROVIDER,
-          isSubscribed: true,
+        const currentActiveSubscription = await Subscription.findOne({
+          providerId: existingUser._id,
+          status: 'active',
         });
 
         if (currentActiveSubscription) {

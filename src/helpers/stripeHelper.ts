@@ -34,7 +34,7 @@ const createStripeProduct = async (
     },
   });
   const paymentLink = await createPaymentLink(product);
-  return { ...product, paymentLink };
+  return { ...product, priceId: product.default_price as string, paymentLink };
 };
 
 const createCheckoutSession = async (

@@ -5,6 +5,9 @@ import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import router from './routes';
 import { Morgan } from './shared/morgen';
 import handleStripeWebhook from './webhook/handleStripeWebhook';
+import { SubscriptionControllers } from './app/modules/subscription/subscription.controller';
+import { USER_ROLES } from './enums/user';
+import auth from './app/middlewares/auth';
 const app = express();
 
 //morgan
@@ -15,6 +18,12 @@ app.use(
   express.raw({ type: 'application/json' }),
   handleStripeWebhook
 );
+app.use(
+  '/api/stripe/subscription/cancel',
+  auth(USER_ROLES.SPACEPROVIDER),
+  SubscriptionControllers.cancelSubscription
+);
+
 //body parser
 app.use(cors());
 app.use(express.json());
