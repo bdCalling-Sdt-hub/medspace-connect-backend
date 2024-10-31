@@ -8,6 +8,7 @@ import { IUser } from '../user/user.interface';
 import { USER_ROLES } from '../../../enums/user';
 import { Package } from '../packages/package.model';
 import { SPACE_STATUS } from '../../../enums/space';
+import { Subscription } from '../subscription/subscription.model';
 
 const createSpaceToDB = async (
   payload: ISpace,
@@ -23,24 +24,22 @@ const createSpaceToDB = async (
       'You are not a space provider!'
     );
   }
-  const isExistPackage = await Package.findOne({
-    _id: isExistProvider.plan,
-  });
-  if (!isExistPackage) {
+  const isExistSubscription = await Subscription.findById(
+    isExistProvider.subscription
+  );
+
+  if (!isExistSubscription) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
       'You have not bought any package yet!'
     );
   }
-  if (!isExistProvider.planPurchasedAt) {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      'Your plan purchase date is not set!'
-    );
+  const isExistPackage = await Package.findById(isExistSubscription.package);
+  if (!isExistPackage) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Package not found!');
   }
-
   const currentDate = new Date();
-  const planPurchaseDate = new Date(isExistProvider.planPurchasedAt);
+  const planPurchaseDate = new Date(isExistSubscription.createdAt);
   const daysSincePurchase = Math.floor(
     (currentDate.getTime() - planPurchaseDate.getTime()) / (1000 * 60 * 60 * 24)
   );
@@ -55,8 +54,8 @@ const createSpaceToDB = async (
     createdAt: { $gte: startDate, $lte: currentDate },
   });
 
-  if (typeof isExistProvider.postLimit === 'number') {
-    if (posts.length >= isExistProvider.postLimit) {
+  if (typeof (isExistPackage.allowedSpaces as number) === 'number') {
+    if (posts.length >= (isExistPackage.allowedSpaces as number)) {
       throw new ApiError(
         StatusCodes.BAD_REQUEST,
         'You have reached your post limit for this 30-day period!'
