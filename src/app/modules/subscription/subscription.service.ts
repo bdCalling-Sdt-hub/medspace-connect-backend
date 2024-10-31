@@ -11,8 +11,8 @@ const cancelSubscription = async (userId: string): Promise<any> => {
     providerId: userId,
     status: 'active',
   });
-
-  if (!activeSubscription) {
+  const isExistUser = await User.findById(userId);
+  if (!activeSubscription || !isExistUser) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'No active subscription found');
   }
 
@@ -26,17 +26,20 @@ const cancelSubscription = async (userId: string): Promise<any> => {
         'Failed to cancel subscription'
       );
     }
-    const updatedSubscription = await Subscription.findByIdAndUpdate(
-      activeSubscription._id,
-      { status: 'canceled' },
-      { new: true }
+    const deletedSubscription = await Subscription.findByIdAndDelete(
+      activeSubscription._id
     );
+
     const updatedUser = await User.findByIdAndUpdate(
       userId,
-      { isSubscribed: false },
+      { isSubscribed: false, subscription: null },
       { new: true }
     );
-    return { updatedSubscription, updatedUser, canceled };
+    return {
+      deletedSubscription,
+      updatedUser,
+      canceled,
+    };
   } catch (error) {
     console.log(error);
     throw new ApiError(

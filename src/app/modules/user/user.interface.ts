@@ -31,7 +31,7 @@ export type IUser = {
   stripeAccountInfo?: {
     stripeCustomerId?: string;
     loginUrl?: string;
-  };
+  } | null;
   authentication?: {
     isResetPassword: boolean;
     oneTimeCode: number;

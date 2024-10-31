@@ -18,18 +18,17 @@ app.use(
   express.raw({ type: 'application/json' }),
   handleStripeWebhook
 );
-app.use(
-  '/api/stripe/subscription/cancel',
-  auth(USER_ROLES.SPACEPROVIDER),
-  SubscriptionControllers.cancelSubscription
-);
 
 //body parser
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Stripe webhook route
-
+app.use(
+  '/api/stripe/subscription/cancel',
+  auth(USER_ROLES.SPACEPROVIDER),
+  SubscriptionControllers.cancelSubscription
+);
 //file retrieve
 app.use(express.static('uploads'));
 
