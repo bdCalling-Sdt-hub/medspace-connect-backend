@@ -9,7 +9,7 @@ import { FaqRoutes } from '../app/modules/faq/faq.route';
 import { SubscriberRoutes } from '../app/modules/subscribers/subscriber.route';
 import { AboutRoute } from '../app/modules/about/about.route';
 import { InfoRoute } from '../app/modules/info/info.route';
-import { SubscriptionRoute } from '../app/modules/subscription/subscription.route';
+import { SupportItemRoute } from '../app/modules/supportItem/supportItem.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -49,6 +49,10 @@ const apiRoutes = [
   {
     path: '/about',
     route: AboutRoute,
+  },
+  {
+    path: '/support-item',
+    route: SupportItemRoute,
   },
   {
     path: '/info',
