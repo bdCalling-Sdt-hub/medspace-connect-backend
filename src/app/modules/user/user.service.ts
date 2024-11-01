@@ -125,13 +125,13 @@ const userStatisticFromDB = async (year: number): Promise<IUser[]> => {
   // Merge user data into the months array
   monthlyEmployer.forEach((employer: any) => {
     const monthIndex = employer._id.month - 1;
-    months[monthIndex].employer = employer.count;
+    months[monthIndex].spaceseeker = employer.count;
   });
 
   // Merge provider data into the months array
   monthlyProvider.forEach((provider: any) => {
     const monthIndex = provider._id.month - 1;
-    months[monthIndex].provider = provider.count;
+    months[monthIndex].spaceprovider = provider.count;
   });
 
   return months;
