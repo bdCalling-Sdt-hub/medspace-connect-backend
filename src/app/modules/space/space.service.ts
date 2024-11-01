@@ -11,6 +11,7 @@ import { SPACE_STATUS } from '../../../enums/space';
 import { Subscription } from '../subscription/subscription.model';
 import { IPaginationOptions } from '../../../types/pagination';
 import { paginationHelper } from '../../../helpers/paginationHelper';
+import { Conversation } from '../conversation/conversation.model';
 
 const createSpaceToDB = async (
   payload: ISpace,
@@ -275,8 +276,24 @@ const getProvidersFromDB = async (): Promise<IUser[]> => {
   }
   return result;
 };
+const getSpaceStatusFromDB = async (): Promise<any[]> => {
+  const totalProvider = await User.find({
+    role: USER_ROLES.SPACEPROVIDER,
+  }).countDocuments();
+  const totalSeeker = await User.find({
+    role: USER_ROLES.SPACESEEKER,
+  }).countDocuments();
+  const totalConversation = await Conversation.find({}).countDocuments();
+  const finalResult: any = {
+    totalProvider,
+    totalSeeker,
+    totalDeals: totalConversation,
+  };
+  return finalResult;
+};
 export const SpaceService = {
   createSpaceToDB,
+  getSpaceStatusFromDB,
   updateSpaceToDB,
   updateSpaceImagesToDB,
   addSpaceFacilitiesToDB,

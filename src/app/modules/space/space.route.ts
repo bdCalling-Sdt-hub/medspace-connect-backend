@@ -13,6 +13,7 @@ router.post(
   fileUploadHandler(),
   SpaceController.createSpace
 );
+router.get('/status', SpaceController.getSpaceStatus);
 router.get('/filter', SpaceController.filterSpaces);
 router.get('/providers', SpaceController.getProviders);
 router.patch(

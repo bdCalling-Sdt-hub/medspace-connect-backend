@@ -200,6 +200,20 @@ const getAllConversationStatus = catchAsync(
     });
   }
 );
+const getMonthlyConversation = catchAsync(
+  async (req: Request, res: Response) => {
+    const { year } = req.query;
+    const result = await ConversationService.getMonthlyConversationStatus(
+      parseInt(year as string)
+    );
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Monthly conversation status retrieved successfully',
+      data: result,
+    });
+  }
+);
 
 export const ConversationController = {
   startConversation,
@@ -213,4 +227,5 @@ export const ConversationController = {
   getUnreadMessageCount,
   searchMessages,
   getAllConversationStatus,
+  getMonthlyConversation,
 };

@@ -16,6 +16,12 @@ router.get(
   auth(USER_ROLES.ADMIN),
   ConversationController.getAllConversationStatus
 );
+router.get(
+  '/monthly-status',
+  auth(USER_ROLES.ADMIN),
+  ConversationController.getMonthlyConversation
+);
+
 router.post(
   '/:conversationId/message',
   auth(USER_ROLES.SPACESEEKER, USER_ROLES.SPACEPROVIDER),

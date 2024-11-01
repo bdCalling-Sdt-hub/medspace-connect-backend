@@ -273,7 +273,7 @@ const getAllConversationStatus = async (): Promise<any[]> => {
   const conversations = await Conversation.find({}).populate(
     'spaceId spaceSeeker spaceProvider'
   );
-  const returnData = conversations.map((conversation: any) => ({
+  const returnData: any[] = conversations.map((conversation: any) => ({
     owner: {
       id: conversation.spaceProvider._id,
       name: conversation.spaceProvider.name,
@@ -295,6 +295,73 @@ const getAllConversationStatus = async (): Promise<any[]> => {
   return returnData;
 };
 
+const getMonthlyConversationStatus = async (year: number): Promise<any[]> => {
+  const months = [
+    { name: 'Jan', conversations: 0 },
+    { name: 'Feb', conversations: 0 },
+    { name: 'Mar', conversations: 0 },
+    { name: 'Apr', conversations: 0 },
+    { name: 'May', conversations: 0 },
+    { name: 'Jun', conversations: 0 },
+    { name: 'Jul', conversations: 0 },
+    { name: 'Aug', conversations: 0 },
+    { name: 'Sep', conversations: 0 },
+    { name: 'Oct', conversations: 0 },
+    { name: 'Nov', conversations: 0 },
+    { name: 'Dec', conversations: 0 },
+  ];
+
+  const startDate = new Date(year, 0, 1);
+  const endDate = new Date(year + 1, 0, 1);
+
+  const monthlyConversation = await Conversation.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: startDate, $lt: endDate },
+      },
+    },
+    {
+      $group: {
+        _id: { $month: '$createdAt' },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $sort: { _id: 1 },
+    },
+  ]);
+
+  // Use Promise.all with map instead of forEach
+  await Promise.all(
+    monthlyConversation.map(async (conversation: any) => {
+      const monthIndex = conversation._id - 1;
+
+      // Initialize price if not already initialized
+      //@ts-ignore
+      months[monthIndex].totalEarnings = 0;
+
+      months[monthIndex].conversations = conversation.count;
+      const conversationsForMonth = await Conversation.find({
+        createdAt: {
+          $gte: new Date(year, monthIndex, 1),
+          $lt: new Date(year, monthIndex + 1, 1),
+        },
+      }).populate('spaceId');
+      // //@ts-ignore
+      // months[monthIndex].space = conversationsForMonth[0]?.spaceId;
+      //@ts-ignore
+      months[monthIndex].totalEarnings = conversationsForMonth.reduce(
+        (total: number, earning: any) => {
+          return total + (earning.spaceId?.price || 0);
+        },
+        0
+      );
+    })
+  );
+
+  return months;
+};
+
 export const ConversationService = {
   startConversation,
   addMessage,
@@ -306,5 +373,6 @@ export const ConversationService = {
   // updateConversationStatus,
   getUnreadMessageCount,
   searchMessages,
+  getMonthlyConversationStatus,
   getAllConversationStatus,
 };
