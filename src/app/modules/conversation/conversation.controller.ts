@@ -189,6 +189,18 @@ const searchMessages = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAllConversationStatus = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await ConversationService.getAllConversationStatus();
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'All conversation status retrieved successfully',
+      data: result,
+    });
+  }
+);
+
 export const ConversationController = {
   startConversation,
   addMessage,
@@ -200,4 +212,5 @@ export const ConversationController = {
   // updateConversationStatus,
   getUnreadMessageCount,
   searchMessages,
+  getAllConversationStatus,
 };

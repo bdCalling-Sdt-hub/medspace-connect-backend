@@ -9,6 +9,8 @@ import { USER_ROLES } from '../../../enums/user';
 import { Package } from '../packages/package.model';
 import { SPACE_STATUS } from '../../../enums/space';
 import { Subscription } from '../subscription/subscription.model';
+import { IPaginationOptions } from '../../../types/pagination';
+import { paginationHelper } from '../../../helpers/paginationHelper';
 
 const createSpaceToDB = async (
   payload: ISpace,
@@ -195,12 +197,26 @@ const getSpaceByIdFromDB = async (id: string): Promise<ISpace | null> => {
   }
   return result;
 };
-const getAllSpacesFromDB = async (): Promise<ISpace[]> => {
-  const result = await Space.find();
-  if (!result) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Spaces not found!');
-  }
-  return result;
+const getAllSpacesFromDB = async (paginationOptions: IPaginationOptions) => {
+  const { page, limit, skip, sortBy, sortOrder } =
+    paginationHelper.calculatePagination(paginationOptions);
+
+  const result = await Space.find()
+    .sort({ [sortBy]: sortOrder })
+    .skip(skip)
+    .limit(limit);
+
+  const total = await Space.countDocuments();
+
+  return {
+    meta: {
+      page,
+      limit,
+      total,
+      totalPage: Math.ceil(total / limit),
+    },
+    data: result,
+  };
 };
 
 const filterSpacesFromDB = async (query: any): Promise<ISpace[]> => {

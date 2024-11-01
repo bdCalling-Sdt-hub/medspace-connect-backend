@@ -11,7 +11,11 @@ router.post(
   auth(USER_ROLES.SPACESEEKER),
   ConversationController.startConversation
 );
-
+router.get(
+  '/details',
+  auth(USER_ROLES.ADMIN),
+  ConversationController.getAllConversationStatus
+);
 router.post(
   '/:conversationId/message',
   auth(USER_ROLES.SPACESEEKER, USER_ROLES.SPACEPROVIDER),

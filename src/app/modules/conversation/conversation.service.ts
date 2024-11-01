@@ -269,6 +269,32 @@ const searchMessages = async (
   return messages;
 };
 
+const getAllConversationStatus = async (): Promise<any[]> => {
+  const conversations = await Conversation.find({}).populate(
+    'spaceId spaceSeeker spaceProvider'
+  );
+  const returnData = conversations.map((conversation: any) => ({
+    owner: {
+      id: conversation.spaceProvider._id,
+      name: conversation.spaceProvider.name,
+      profilePicture: conversation.spaceProvider.profile,
+    },
+    space: {
+      id: conversation.spaceId._id,
+      postTitle: conversation.spaceId.title,
+      practiceType: conversation.spaceId.practiceFor,
+      openingDate: conversation.spaceId.openingDate,
+      price: conversation.spaceId.price,
+    },
+    spaceSeeker: {
+      id: conversation.spaceSeeker._id,
+      name: conversation.spaceSeeker.name,
+      profilePicture: conversation.spaceSeeker.profile,
+    },
+  }));
+  return returnData;
+};
+
 export const ConversationService = {
   startConversation,
   addMessage,
@@ -280,4 +306,5 @@ export const ConversationService = {
   // updateConversationStatus,
   getUnreadMessageCount,
   searchMessages,
+  getAllConversationStatus,
 };

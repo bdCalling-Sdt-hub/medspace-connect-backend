@@ -120,12 +120,21 @@ const getSpaceById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getAllSpaces = catchAsync(async (req: Request, res: Response) => {
-  const result = await SpaceService.getAllSpacesFromDB();
+  const paginationOptions = {
+    page: Number(req.query.page),
+    limit: Number(req.query.limit),
+    sortBy: req.query.sortBy as string,
+    sortOrder: req.query.sortOrder as 'asc' | 'desc',
+  };
+
+  const result = await SpaceService.getAllSpacesFromDB(paginationOptions);
+
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
     message: 'Spaces fetched successfully',
-    data: result,
+    data: result.data,
+    pagination: result.meta,
   });
 });
 const filterSpaces = catchAsync(async (req: Request, res: Response) => {
