@@ -6,7 +6,7 @@ import { Server } from 'socket.io';
 import { USER_ROLES } from '../../../enums/user';
 import { User } from '../user/user.model';
 import { kafkaHelper } from '../../../helpers/kafkaHelper';
-import { sendMulticastPushNotification } from '../../../helpers/firebaseNotificationHelper';
+
 const sendNotificationToReceiver = async (
   notification: INotification,
   io: Server
@@ -20,7 +20,7 @@ const sendNotificationToReceiver = async (
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to send notification!');
   }
 
-  // Publish to Kafka - let the consumer handle both Socket.IO and Push notifications
+  // Publish to Kafka - let the consumer handle Socket.IO notification
   await kafkaHelper.producer.send({
     topic: 'notifications',
     messages: [{ value: JSON.stringify(result) }],
@@ -28,6 +28,7 @@ const sendNotificationToReceiver = async (
 
   return result;
 };
+
 const getAllNotificationsFromDB = async (
   receiverId: string
 ): Promise<INotification[]> => {
@@ -51,8 +52,7 @@ const sendNotificationToAllUserOfARole = async (
     );
   }
 
-  // Get all users
-  const users = await User.find({ role }, '_id deviceTokens');
+  const users = await User.find({ role }, '_id');
   const notifications = users.map(user => ({
     ...notification,
     receiverId: user._id,

@@ -68,11 +68,6 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       required: false,
     },
-    deviceTokens: {
-      type: [String],
-      default: [],
-      required: false,
-    },
     stripeAccountInfo: {
       stripeCustomerId: {
         type: String,
