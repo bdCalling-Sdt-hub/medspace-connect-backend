@@ -99,10 +99,22 @@ const manageDeviceToken = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const userStatistic = catchAsync(async (req: Request, res: Response) => {
+  const { year } = req.query;
+  const result = await UserService.userStatisticFromDB(Number(year));
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'User statistic retrieved successfully',
+    data: result,
+  });
+});
+
 export const UserController = {
   createUser,
   getUserProfile,
   updateProfile,
   registerDeviceToken,
   manageDeviceToken,
+  userStatistic,
 };

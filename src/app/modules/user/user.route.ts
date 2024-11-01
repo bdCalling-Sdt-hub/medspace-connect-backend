@@ -25,7 +25,11 @@ router
     fileUploadHandler(),
     UserController.updateProfile
   );
-
+router.get(
+  '/user-statistic',
+  auth(USER_ROLES.ADMIN),
+  UserController.userStatistic
+);
 router.post(
   '/register-device',
   auth(USER_ROLES.ADMIN, USER_ROLES.SPACEPROVIDER, USER_ROLES.SPACESEEKER),

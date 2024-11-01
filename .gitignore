@@ -2,5 +2,3 @@ node_modules
 .env
 /test-frontend
 /winston
-firbaseconfigprivatekey.example.json
-randomData.md
