@@ -2,63 +2,125 @@ import { program } from 'commander';
 import fs from 'fs';
 
 // Function to generate file content based on file type
-const generateFileContent = (fileType, name, capitalizedModuleName, exportName) => {
+const generateFileContent = (fileType, name, capitalizedModuleName, exportName, fields) => {
   switch (fileType) {
     case 'route':
       return `
 import express from 'express';
+import { ${capitalizedModuleName}Controller } from './${name}.controller';
+import { USER_ROLES } from '../../../enums/user';
+import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
-import { ${name[0].toUpperCase() + name.slice(1)}Validation } from './${name}.validation';
-import { ${name[0].toUpperCase() + name.slice(1)}Controller } from './${name}.controller';
+import { ${capitalizedModuleName}Validation } from './${name}.validation';
+
 const router = express.Router();
+
 router.post(
   '/create',
-  validateRequest(${name[0].toUpperCase() + name.slice(1)}Validation.${name[0].toUpperCase() + name.slice(1)}ValidationZodSchema),
-  ${name[0].toUpperCase() + name.slice(1)}Controller.random${name[0].toUpperCase() + name.slice(1)}ControllerFunction
+  auth(USER_ROLES.ADMIN),
+  validateRequest(${capitalizedModuleName}Validation.create${capitalizedModuleName}ZodSchema),
+  ${capitalizedModuleName}Controller.create${capitalizedModuleName}
 );
-export const ${name[0].toUpperCase() + name.slice(1)}Route = router;
+router.get('/', ${capitalizedModuleName}Controller.getAll${capitalizedModuleName}s);
+router.get('/:id', ${capitalizedModuleName}Controller.get${capitalizedModuleName}ById);
+router.patch(
+  '/:id',
+  auth(USER_ROLES.ADMIN),
+  validateRequest(${capitalizedModuleName}Validation.update${capitalizedModuleName}ZodSchema),
+  ${capitalizedModuleName}Controller.update${capitalizedModuleName}
+);
+router.delete('/:id', auth(USER_ROLES.ADMIN), ${capitalizedModuleName}Controller.delete${capitalizedModuleName});
+
+export const ${capitalizedModuleName}Routes = router;
       `;
     case 'model':
       return `
 import { Schema, model } from 'mongoose';
-import { I${name[0].toUpperCase() + name.slice(1)}, ${capitalizedModuleName}Model } from './${name}.interface';
+import { I${capitalizedModuleName}, ${capitalizedModuleName}Model } from './${name}.interface';
 
-const ${name}Schema = new Schema<I${name[0].toUpperCase() + name.slice(1)}, ${name[0].toUpperCase() + name.slice(1)}Model>({
-  // Define schema fields here
-});
+const ${name}Schema = new Schema<I${capitalizedModuleName}, ${capitalizedModuleName}Model>({
+  ${fields.map(field => `${field.name}: { type: ${field.type.replace(field.type[0], field.type[0].toUpperCase())}, required: true }`).join(',\n  ')}
+}, { timestamps: true });
 
-export const ${name[0].toUpperCase() + name.slice(1)} = model<I${name[0].toUpperCase() + name.slice(1)}, ${name[0].toUpperCase() + name.slice(1)}Model>('${name}', ${name}Schema);
+export const ${capitalizedModuleName} = model<I${capitalizedModuleName}, ${capitalizedModuleName}Model>('${capitalizedModuleName}', ${name}Schema);
       `;
     case 'interface':
       return `
 import { Model } from 'mongoose';
 
-export type I${name[0].toUpperCase() + name.slice(1)} = {
-  // Define your interface properties here
+export type I${capitalizedModuleName} = {
+  ${fields.map(field => `${field.name}: ${field.type}`).join(';\n  ')}
 };
 
-export type ${name[0].toUpperCase() + name.slice(1)}Model = Model<I${name[0].toUpperCase() + name.slice(1)}>;
+export type ${capitalizedModuleName}Model = Model<I${capitalizedModuleName}>;
       `;
     case 'service':
       return `
 import { StatusCodes } from 'http-status-codes';
 import ApiError from '../../../errors/ApiError';
-import { ${name[0].toUpperCase() + name.slice(1)} } from './${name}.model';
-import { I${name[0].toUpperCase() + name.slice(1)} } from './${name}.interface';
+import { ${capitalizedModuleName} } from './${name}.model';
+import { I${capitalizedModuleName} } from './${name}.interface';
 
-export const random${exportName}Function = async () => {
-  // Define your service logic here
+const create${capitalizedModuleName} = async (payload: I${capitalizedModuleName}): Promise<I${capitalizedModuleName}> => {
+  const result = await ${capitalizedModuleName}.create(payload);
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create ${name}!');
+  }
+  return result;
 };
 
-export const ${exportName} = { random${exportName}Function };
+const getAll${capitalizedModuleName}s = async (): Promise<I${capitalizedModuleName}[]> => {
+  return await ${capitalizedModuleName}.find();
+};
+
+const get${capitalizedModuleName}ById = async (id: string): Promise<I${capitalizedModuleName} | null> => {
+  const result = await ${capitalizedModuleName}.findById(id);
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, '${capitalizedModuleName} not found!');
+  }
+  return result;
+};
+
+const update${capitalizedModuleName} = async (id: string, payload: I${capitalizedModuleName}): Promise<I${capitalizedModuleName} | null> => {
+  const result = await ${capitalizedModuleName}.findByIdAndUpdate(id, payload, { new: true });
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update ${name}!');
+  }
+  return result;
+};
+
+const delete${capitalizedModuleName} = async (id: string): Promise<I${capitalizedModuleName} | null> => {
+  const result = await ${capitalizedModuleName}.findByIdAndDelete(id);
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to delete ${name}!');
+  }
+  return result;
+};
+
+export const ${capitalizedModuleName}Service = {
+  create${capitalizedModuleName},
+  getAll${capitalizedModuleName}s,
+  get${capitalizedModuleName}ById,
+  update${capitalizedModuleName},
+  delete${capitalizedModuleName},
+};
       `;
     case 'validation':
       return `
 import { z } from 'zod';
-export const ${exportName}ZodSchema = z.object({
-  // Define your schema fields here
-});
-export const ${exportName} = { ${exportName}ZodSchema };
+
+export const ${capitalizedModuleName}Validation = {
+  create${capitalizedModuleName}ZodSchema: z.object({
+    body: z.object({
+      ${fields.map(field => `${field.name}: z.${field.type}({required_error:"${field.name} is required", invalid_type_error:"${field.name} should be type ${field.type}"})`).join(',\n      ')}
+    }),
+  }),
+  update${capitalizedModuleName}ZodSchema: z.object({
+    body: z.object({
+      ${fields.map(field => `${field.name}: z.${field.type}({invalid_type_error:"${field.name} should be type ${field.type}"}).optional()`).join(',\n      ')}
+    }),
+  }),
+};
       `;
     case 'controller':
       return `
@@ -66,18 +128,65 @@ import { Request, Response } from 'express';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
 import { StatusCodes } from 'http-status-codes';
-import { ${name[0].toUpperCase() + name.slice(1)}Service } from './${name}.service';
+import { ${capitalizedModuleName}Service } from './${name}.service';
 
-export const random${exportName}Function = catchAsync(async (req: Request, res: Response) => {
-  const result = await ${name[0].toUpperCase() + name.slice(1)}Service.random${name[0].toUpperCase() + name.slice(1)}ServiceFunction();
+const create${capitalizedModuleName} = catchAsync(async (req: Request, res: Response) => {
+  const result = await ${capitalizedModuleName}Service.create${capitalizedModuleName}(req.body);
   sendResponse(res, {
-    statusCode: StatusCodes.OK,
+    statusCode: StatusCodes.CREATED,
     success: true,
-    message: 'anything happened successfully',
+    message: '${capitalizedModuleName} created successfully',
     data: result,
   });
 });
-export const ${exportName} = { random${exportName}Function };
+
+const getAll${capitalizedModuleName}s = catchAsync(async (req: Request, res: Response) => {
+  const result = await ${capitalizedModuleName}Service.getAll${capitalizedModuleName}s();
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: '${capitalizedModuleName}s fetched successfully',
+    data: result,
+  });
+});
+
+const get${capitalizedModuleName}ById = catchAsync(async (req: Request, res: Response) => {
+  const result = await ${capitalizedModuleName}Service.get${capitalizedModuleName}ById(req.params.id);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: '${capitalizedModuleName} fetched successfully',
+    data: result,
+  });
+});
+
+const update${capitalizedModuleName} = catchAsync(async (req: Request, res: Response) => {
+  const result = await ${capitalizedModuleName}Service.update${capitalizedModuleName}(req.params.id, req.body);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: '${capitalizedModuleName} updated successfully',
+    data: result,
+  });
+});
+
+const delete${capitalizedModuleName} = catchAsync(async (req: Request, res: Response) => {
+  const result = await ${capitalizedModuleName}Service.delete${capitalizedModuleName}(req.params.id);
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: '${capitalizedModuleName} deleted successfully',
+    data: result,
+  });
+});
+
+export const ${capitalizedModuleName}Controller = {
+  create${capitalizedModuleName},
+  getAll${capitalizedModuleName}s,
+  get${capitalizedModuleName}ById,
+  update${capitalizedModuleName},
+  delete${capitalizedModuleName},
+};
       `;
     default:
       return `
@@ -88,9 +197,14 @@ export const ${exportName} = {};
 };
 
 program
-  .command('create <name>')
-  .description('Create a new module')
-  .action(name => {
+  .command('create <name> <fields...>')
+  .description('Create a new module with specified fields')
+  .action((name, fields) => {
+    const parsedFields = fields.map(field => {
+      const [name, type, validation] = field.split(':');
+      return { name, type, validation };
+    });
+
     fs.mkdirSync(`src/app/modules/${name}`, { recursive: true });
 
     const files = [
@@ -105,11 +219,10 @@ program
     files.forEach(file => {
       const fileType = file.split('.')[1];
       const capitalizedModuleName = name[0].toUpperCase() + name.slice(1);
-      const capitalizedFileType = fileType[0].toUpperCase() + fileType.slice(1);
-      const exportName = `${capitalizedModuleName}${capitalizedFileType}`;
+      const exportName = `${capitalizedModuleName}${fileType[0].toUpperCase() + fileType.slice(1)}`;
 
       // Generate content using the new function
-      const fileContent = generateFileContent(fileType, name, capitalizedModuleName, exportName).trim();
+      const fileContent = generateFileContent(fileType, name, capitalizedModuleName, exportName, parsedFields).trim();
 
       // Write content to file
       fs.writeFileSync(file, fileContent);
