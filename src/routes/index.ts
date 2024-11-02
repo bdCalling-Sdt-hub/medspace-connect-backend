@@ -10,6 +10,7 @@ import { SubscriberRoutes } from '../app/modules/subscribers/subscriber.route';
 import { AboutRoute } from '../app/modules/about/about.route';
 import { InfoRoute } from '../app/modules/info/info.route';
 import { SupportItemRoute } from '../app/modules/supportItem/supportItem.route';
+import { FavouriteRoute } from '../app/modules/favourite/favourite.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -53,6 +54,10 @@ const apiRoutes = [
   {
     path: '/support-item',
     route: SupportItemRoute,
+  },
+  {
+    path: '/favourite',
+    route: FavouriteRoute,
   },
   {
     path: '/info',
