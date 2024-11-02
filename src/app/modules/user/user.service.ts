@@ -22,7 +22,7 @@ const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
 
   //send email
   const otp = generateOTP();
-  const values = {
+  const values: any = {
     name: createUser.name,
     otp: otp,
     email: createUser.email!,
@@ -70,7 +70,7 @@ const updateProfileToDB = async (
     unlinkFile(isExistUser.profile);
   }
 
-  const updateDoc = await User.findOneAndUpdate({ _id: id }, payload, {
+  const updateDoc: any = await User.findOneAndUpdate({ _id: id }, payload, {
     new: true,
   });
 
