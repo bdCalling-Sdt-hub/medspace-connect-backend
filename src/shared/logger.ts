@@ -45,7 +45,7 @@ const logger = createLogger({
 
 const errorLogger = createLogger({
   level: 'error',
-  format: combine(label({ label: 'SERVER-NAME' }), timestamp(), myFormat),
+  format: combine(label({ label: 'MEDPSACE-CONNECT' }), timestamp(), myFormat),
   transports: [
     new transports.Console(),
     new DailyRotateFile({

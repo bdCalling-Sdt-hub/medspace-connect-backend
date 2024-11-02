@@ -3,7 +3,7 @@ import { IFavourite, FavouriteModel } from './favourite.interface';
 
 const favouriteSchema = new Schema<IFavourite, FavouriteModel>(
   {
-    spaceId: { type: Schema.Types.ObjectId, ref: 'space', required: true },
+    spaceId: { type: Schema.Types.ObjectId, ref: 'Space', required: true },
     userId: { type: Schema.Types.ObjectId, ref: 'user', required: true },
   },
   { timestamps: true }

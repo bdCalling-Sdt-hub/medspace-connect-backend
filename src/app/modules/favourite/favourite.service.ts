@@ -6,6 +6,13 @@ import { IFavourite } from './favourite.interface';
 const createFavourite = async (
   payload: IFavourite
 ): Promise<IFavourite | null> => {
+  const isExist = await Favourite.findOne({
+    spaceId: payload.spaceId,
+    userId: payload.userId,
+  });
+  if (isExist) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Favourite already exists');
+  }
   const result = await Favourite.create(payload);
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create favourite');
@@ -32,16 +39,6 @@ const updateFavourite = async (
   id: string,
   payload: Partial<IFavourite>
 ): Promise<IFavourite | null> => {
-  const isExist = await Favourite.findById(id);
-  if (!isExist) {
-    throw new ApiError(StatusCodes.NOT_FOUND, 'Favourite not found');
-  }
-  if (isExist.userId !== payload.userId) {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      'You are not authorized to update this favourite'
-    );
-  }
   const result = await Favourite.findByIdAndUpdate(id, payload, { new: true });
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update favourite');
@@ -58,7 +55,7 @@ const deleteFavourite = async (id: string): Promise<IFavourite | null> => {
 const getFavouriteByUserId = async (
   userId: string
 ): Promise<IFavourite[] | null> => {
-  const result = await Favourite.find({ userId });
+  const result: any = await Favourite.find({ userId }).populate('spaceId');
   if (!result) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Favourites not found');
   }
