@@ -10,6 +10,7 @@ import { USER_ROLES } from './enums/user';
 import auth from './app/middlewares/auth';
 import { logger } from './shared/logger';
 import { Error } from 'mongoose';
+import config from './config';
 const app = express();
 
 //morgan
@@ -22,7 +23,10 @@ app.use(
 );
 
 //body parser
-app.use(cors());
+app.use(cors({
+  origin: config.client_url,
+  credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Stripe webhook route

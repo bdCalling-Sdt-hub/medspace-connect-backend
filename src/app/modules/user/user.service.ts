@@ -9,6 +9,8 @@ import generateOTP from '../../../util/generateOTP';
 import { IUser } from './user.interface';
 import { User } from './user.model';
 import { errorLogger } from '../../../shared/logger';
+import { Subscription } from '../subscription/subscription.model';
+import { Space } from '../space/space.model';
 
 const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
   //set role
@@ -43,18 +45,64 @@ const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
   return createUser;
 };
 
-const getUserProfileFromDB = async (
-  user: JwtPayload
-): Promise<Partial<IUser>> => {
+const getUserProfileFromDB = async (user: JwtPayload): Promise<Partial<any>> => {
   const { id } = user;
-  const isExistUser = await User.isExistUserById(id);
+  const isExistUser = await User.findById(id).select('-password');
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
 
-  return isExistUser;
-};
+  const userSubscription = await Subscription.findOne({
+    providerId: id,
+  }).populate("package");
 
+  if(!userSubscription) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "You have not bought any package yet!");
+  }
+  if (isExistUser.role !== USER_ROLES.SPACEPROVIDER) {
+    return isExistUser;
+  }
+
+  // Create dates in UTC to match the stored format
+  const subscriptionDate = new Date(userSubscription?.createdAt);
+  const currentDate = new Date();
+
+  // Calculate days since subscription
+  const daysSinceSubscription = Math.floor(
+    (currentDate.getTime() - subscriptionDate.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  const thirtyDayPeriods = Math.floor(daysSinceSubscription / 30);
+
+  // Calculate period start and end dates
+  const startDate = new Date(subscriptionDate);
+  const endDate = new Date(subscriptionDate);
+  endDate.setDate(subscriptionDate.getDate() + 30); // Add exactly 30 days
+
+  // Query spaces posted in this period
+  const spacesPosted = await Space.find({
+    providerId: id,
+    createdAt: { $gte: startDate, $lte: endDate },
+  });
+
+  // For debugging
+  console.log({
+    subscriptionCreated: subscriptionDate.toISOString(),
+    periodStart: startDate.toISOString(),
+    periodEnd: endDate.toISOString()
+  });
+
+  const finalResult = {
+    user: isExistUser,
+    posts: spacesPosted,
+    //@ts-ignore
+    allowedSpaces: userSubscription?.package.allowedSpaces!,
+    spacesPosted: spacesPosted.length,
+    deadLine: endDate.toDateString(), 
+  };
+
+  return finalResult;
+};
 const updateProfileToDB = async (
   user: JwtPayload,
   payload: Partial<IUser>

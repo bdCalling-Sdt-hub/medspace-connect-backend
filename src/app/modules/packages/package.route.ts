@@ -4,6 +4,7 @@ import { PackageValidation } from './package.validation';
 import auth from '../../middlewares/auth';
 import validateRequest from '../../middlewares/validateRequest';
 import { USER_ROLES } from '../../../enums/user';
+import { PackageService } from './package.service';
 
 const router = express.Router();
 
@@ -12,6 +13,11 @@ router.post(
   auth(USER_ROLES.ADMIN),
   validateRequest(PackageValidation.createPackageZodSchema),
   PackageController.createPackage
+);
+router.get(
+  '/subscribed',
+  auth(USER_ROLES.SPACEPROVIDER),
+  PackageController.getSubscribedPackages
 );
 router.get('/get-all', PackageController.getAllPackages);
 router.patch(

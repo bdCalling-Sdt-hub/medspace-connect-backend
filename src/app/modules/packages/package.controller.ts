@@ -106,11 +106,26 @@ const deletePackage = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getSubscribedPackages = catchAsync(
+  async (req: Request, res: Response) => {
+    const user = req.user;
 
+    const result = await PackageService.getSubscribedPackagesfromDB(
+      user.id.toString()
+    );
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: 'Subscribed Packages Receive successfully',
+      data: result,
+    });
+  }
+);
 export const PackageController = {
   createPackage,
   getSinglePackage,
   getAllPackages,
+  getSubscribedPackages,
   deletePackage,
   updatePackage,
 };

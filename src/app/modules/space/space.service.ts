@@ -17,6 +17,7 @@ const createSpaceToDB = async (
   payload: ISpace,
   id: string
 ): Promise<ISpace> => {
+  // Check if provider exists
   const isExistProvider: IUser | null = await User.findOne({
     _id: id,
     role: USER_ROLES.SPACEPROVIDER,
@@ -27,48 +28,59 @@ const createSpaceToDB = async (
       'You are not a space provider!'
     );
   }
+
+  // Check subscription
   const isExistSubscription = await Subscription.findById(
     isExistProvider.subscription
   );
-
   if (!isExistSubscription) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
       'You have not bought any package yet!'
     );
   }
+
+  // Check package
   const isExistPackage = await Package.findById(isExistSubscription.package);
   if (!isExistPackage) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Package not found!');
   }
-  const currentDate = new Date();
-  const planPurchaseDate = new Date(isExistSubscription.createdAt);
-  const daysSincePurchase = Math.floor(
-    (currentDate.getTime() - planPurchaseDate.getTime()) / (1000 * 60 * 60 * 24)
-  );
-  const thirtyDayPeriods = Math.floor(daysSincePurchase / 30);
 
-  const startDate = new Date(
-    planPurchaseDate.getTime() + thirtyDayPeriods * 30 * 24 * 60 * 60 * 1000
-  );
-
-  const posts = await Space.find({
-    providerId: id,
-    createdAt: { $gte: startDate, $lte: currentDate },
+  // Calculate current period dates
+  const subscriptionDate = new Date(isExistSubscription.createdAt);
+  const startDate = new Date(subscriptionDate);
+  const endDate = new Date(subscriptionDate);
+  endDate.setDate(subscriptionDate.getDate() + 30); // Add exactly 30 days
+  
+  // For debugging
+  console.log({
+    subscriptionStart: subscriptionDate.toISOString(),
+    periodStart: startDate.toISOString(),
+    periodEnd: endDate.toISOString()
   });
 
+  // Find posts in current period
+  const posts = await Space.find({
+    providerId: id,
+    createdAt: { $gte: startDate, $lte: endDate },
+  });
+
+  // Check if post limit reached
   if (typeof (isExistPackage.allowedSpaces as number) === 'number') {
     if (posts.length >= (isExistPackage.allowedSpaces as number)) {
       throw new ApiError(
         StatusCodes.BAD_REQUEST,
-        'You have reached your post limit for this 30-day period!'
+        `You have reached your post limit (${isExistPackage.allowedSpaces}) for this 30-day period! Your next period starts ${endDate.toDateString()}`
       );
     }
   }
+
+  // Create space
   const result = await Space.create(payload);
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create space!');
   }
+
   return result;
 };
 
@@ -291,6 +303,7 @@ const getSpaceStatusFromDB = async (): Promise<any[]> => {
   };
   return finalResult;
 };
+
 export const SpaceService = {
   createSpaceToDB,
   getSpaceStatusFromDB,

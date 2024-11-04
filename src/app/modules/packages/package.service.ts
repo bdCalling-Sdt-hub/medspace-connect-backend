@@ -9,6 +9,8 @@ import { stripeHelper } from '../../../helpers/stripeHelper';
 import config from '../../../config';
 import { emailHelper } from '../../../helpers/emailHelper';
 import Stripe from 'stripe';
+import { Subscription } from '../subscription/subscription.model';
+import { getSubscriptionPeriodDates } from '../../../shared/getDeadline';
 
 const createPackageToDB = async (payload: IPackage, user: any) => {
   const isExistAdmin = await User.findOne({
@@ -80,6 +82,34 @@ const deletePackageFromDB = async (id: string): Promise<IPackage | null> => {
   }
   return result;
 };
+const getSubscribedPackagesfromDB = async (id: string): Promise<any> => {
+  const isExistUser = await User.findById(id).populate('subscription');
+  if (!isExistUser) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+  if (!isExistUser.subscription) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'User has no subscription');
+  }
+  const isExistPackage = await Package.findOne({
+    // @ts-expect-error
+    _id: isExistUser.subscription.package,
+  });
+  //@ts-ignore
+  const { start: periodStart, end: periodEnd } = getSubscriptionPeriodDates(new Date(isExistUser.subscription.createdAt));
+
+  if (!isExistPackage) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'Package not found');
+  }
+  const finalResult = {
+  //@ts-ignore
+    ...isExistPackage._doc,
+    
+    deadline:periodEnd.toLocaleDateString("en-GB",
+      { year: 'numeric', month: 'long', day: 'numeric' }
+    ),
+  }
+  return finalResult;
+};
 
 export const PackageService = {
   createPackageToDB,
@@ -87,4 +117,5 @@ export const PackageService = {
   updatePackageToDB,
   getAllPackagesFromDB,
   getSinglePackageFromDB,
+  getSubscribedPackagesfromDB,
 };
