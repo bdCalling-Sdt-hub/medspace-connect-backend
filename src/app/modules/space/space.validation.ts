@@ -5,6 +5,7 @@ const createSpaceZodSchema = z.object({
   title: z.string({ required_error: 'title is required' }),
   price: z.number({ required_error: 'price is required' }),
   priceType: z.string({ required_error: 'priceType is required' }),
+  speciality: z.string({ required_error: 'speciality is required' }),
   location: z.string({ required_error: 'location is required' }),
   openingDate: z.string({ required_error: 'openingDate is required' }),
   practiceFor: z.string({ required_error: 'practiceFor is required' }),
@@ -21,6 +22,7 @@ const updateSpaceZodSchema = z.object({
   location: z
     .string({ invalid_type_error: 'location must be a string' })
     .optional(),
+    speciality: z.string({ invalid_type_error: 'speciality must be a string' }).optional(),
   openingDate: z
     .string({ invalid_type_error: 'openingDate must be a string' })
     .optional(),

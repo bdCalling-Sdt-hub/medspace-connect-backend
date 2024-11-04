@@ -16,6 +16,7 @@ export type ISpace = {
   status?: SPACE_STATUS;
   location: string;
   openingDate: string;
+  speciality?: string;
   practiceFor: string;
   facilities: string[];
   description: string;

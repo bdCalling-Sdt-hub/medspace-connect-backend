@@ -53,6 +53,10 @@ const spaceSchema = new Schema<ISpace, SpaceModel>(
       type: [String],
       required: true,
     },
+    speciality: {
+      type: String,
+      required: false,
+    },
     description: {
       type: String,
       required: true,
