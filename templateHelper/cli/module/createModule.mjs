@@ -108,11 +108,10 @@ export const ${capitalizedModuleName}Service = {
     case 'validation':
       return `
 import { z } from 'zod';
-
 export const ${capitalizedModuleName}Validation = {
   create${capitalizedModuleName}ZodSchema: z.object({
     body: z.object({
-      ${fields.map(field => `${field.name}: z.${field.type}({required_error:"${field.name} is required", invalid_type_error:"${field.name} should be type ${field.type}"})`).join(',\n      ')}
+      ${fields.map(field => `${field.name}: z.${field.type}({required_error:"${field.name==='Date'?'date':field.name} is required", invalid_type_error:"${field.name} should be type ${field.type}"})`).join(',\n      ')}
     }),
   }),
   update${capitalizedModuleName}ZodSchema: z.object({
@@ -201,8 +200,8 @@ program
   .description('Create a new module with specified fields')
   .action((name, fields) => {
     const parsedFields = fields.map(field => {
-      const [name, type, validation] = field.split(':');
-      return { name, type, validation };
+      const [name, type] = field.split(':');
+      return { name, type};
     });
 
     fs.mkdirSync(`src/app/modules/${name}`, { recursive: true });

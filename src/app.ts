@@ -1,5 +1,5 @@
 import cors from 'cors';
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import { StatusCodes } from 'http-status-codes';
 import globalErrorHandler from './app/middlewares/globalErrorHandler';
 import router from './routes';
@@ -8,6 +8,8 @@ import handleStripeWebhook from './webhook/handleStripeWebhook';
 import { SubscriptionControllers } from './app/modules/subscription/subscription.controller';
 import { USER_ROLES } from './enums/user';
 import auth from './app/middlewares/auth';
+import { logger } from './shared/logger';
+import { Error } from 'mongoose';
 const app = express();
 
 //morgan
@@ -41,7 +43,13 @@ app.get('/', (req: Request, res: Response) => {
     '<h1 style="text-align:center; color:#A55FEF; font-family:Verdana;">Hey, How can I assist you today!</h1>'
   );
 });
-
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  logger.error(err); // Log the error
+  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+    success: false,
+    message: 'An error occurred, please try again later.',
+  });
+});
 //global error handle
 app.use(globalErrorHandler);
 

@@ -12,6 +12,12 @@ const createPaymentLink = async (product: Stripe.Product) => {
         quantity: 1,
       },
     ],
+    after_completion: {
+      type: 'redirect',
+      redirect: {
+        url: config.client_url as string,
+      },
+    },
   });
 
   return paymentLink.url;

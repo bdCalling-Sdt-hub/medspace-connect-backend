@@ -23,17 +23,18 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
       signature.toString(),
       webhookSecret
     );
-  } catch (error) {
-    // Return an error if verification fails
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      `Webhook signature verification failed. ${error}`
-    );
+  } catch (error: any) {
+    // Log the error and send a response back to Stripe
+    logger.error(`Webhook signature verification failed: ${error}`);
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .send(`Webhook Error: ${error.message}`);
   }
 
   // Check if the event is valid
   if (!event) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid event received!');
+    logger.error('Invalid event received!');
+    return res.status(StatusCodes.BAD_REQUEST).send('Invalid event received!');
   }
 
   // Extract event data and type
@@ -45,7 +46,6 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
     switch (eventType) {
       case 'customer.subscription.created':
         await handleSubscriptionCreated(data as Stripe.Subscription);
-        console.log('subscribe new package', data);
         break;
 
       case 'customer.subscription.updated':
@@ -66,13 +66,13 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
     }
   } catch (error) {
     // Handle errors during event processing
-    throw new ApiError(
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      `Error handling event: ${error}`
-    );
+    logger.error(`Error handling event: ${error}`);
+    // Optionally, you can log the event data for debugging
+    logger.error(`Event data: ${JSON.stringify(data)}`);
   }
 
-  res.sendStatus(200); // Send success response
+  // Always send a response to Stripe
+  res.sendStatus(200);
 };
 
 export default handleStripeWebhook;
