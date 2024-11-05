@@ -52,12 +52,12 @@ const createSpaceToDB = async (
   const startDate = new Date(subscriptionDate);
   const endDate = new Date(subscriptionDate);
   endDate.setDate(subscriptionDate.getDate() + 30); // Add exactly 30 days
-  
+
   // For debugging
   console.log({
     subscriptionStart: subscriptionDate.toISOString(),
     periodStart: startDate.toISOString(),
-    periodEnd: endDate.toISOString()
+    periodEnd: endDate.toISOString(),
   });
 
   // Find posts in current period
@@ -71,7 +71,9 @@ const createSpaceToDB = async (
     if (posts.length >= (isExistPackage.allowedSpaces as number)) {
       throw new ApiError(
         StatusCodes.BAD_REQUEST,
-        `You have reached your post limit (${isExistPackage.allowedSpaces}) for this 30-day period! Your next period starts ${endDate.toDateString()}`
+        `You have reached your post limit (${
+          isExistPackage.allowedSpaces
+        }) for this 30-day period! Your next period starts ${endDate.toDateString()}`
       );
     }
   }
@@ -94,8 +96,8 @@ const updateSpaceToDB = async (
   if (!isExist) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Space not found!');
   }
-  if(payload.spaceImages === null) {
-    payload.spaceImages = isExist.spaceImages
+  if (payload.spaceImages === null) {
+    payload.spaceImages = isExist.spaceImages;
   }
   if (isExist.providerId.toString() !== userId) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'You are not authorized!');
@@ -314,13 +316,24 @@ const getMySpacesFromDB = async (userId: string): Promise<ISpace[]> => {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found!');
   }
   const result = await Space.find({ providerId: isExistProvider._id }).populate(
-    'providerId');
+    'providerId'
+  );
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Spaces not found!');
   }
   return result;
-}
+};
+const getRecentSpacesFromDB = async (): Promise<ISpace[]> => {
+  const result = await Space.find({})
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .populate('providerId');
 
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Spaces not found!');
+  }
+  return result;
+};
 export const SpaceService = {
   createSpaceToDB,
   getSpaceStatusFromDB,
@@ -333,4 +346,5 @@ export const SpaceService = {
   getSpaceByIdFromDB,
   getAllSpacesFromDB,
   getProvidersFromDB,
+  getRecentSpacesFromDB,
 };

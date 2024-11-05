@@ -92,6 +92,7 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       default: '/profiles/default.png',
     },
+
     status: {
       type: String,
       enum: ['active', 'delete'],

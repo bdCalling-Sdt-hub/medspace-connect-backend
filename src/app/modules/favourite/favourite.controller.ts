@@ -48,7 +48,7 @@ const updateFavourite = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const deleteFavourite = catchAsync(async (req: Request, res: Response) => {
-  const result = await FavouriteService.deleteFavourite(req.params.id);
+  const result = await FavouriteService.deleteFavouriteToDB(req.params.id);
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,

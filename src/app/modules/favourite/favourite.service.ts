@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import ApiError from '../../../errors/ApiError';
 import { Favourite } from './favourite.model';
 import { IFavourite } from './favourite.interface';
+import { ObjectId, Types } from 'mongoose';
 
 const createFavourite = async (
   payload: IFavourite
@@ -45,8 +46,10 @@ const updateFavourite = async (
   }
   return result;
 };
-const deleteFavourite = async (id: string): Promise<IFavourite | null> => {
-  const result = await Favourite.findByIdAndDelete(id);
+const deleteFavouriteToDB = async (id: any): Promise<IFavourite | null> => {
+  console.log(id);
+
+  const result = await Favourite.findOneAndDelete({ spaceId: id });
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to delete favourite');
   }
@@ -66,6 +69,6 @@ export const FavouriteService = {
   getAllFavourites,
   getFavouriteById,
   updateFavourite,
-  deleteFavourite,
+  deleteFavouriteToDB,
   getFavouriteByUserId,
 };

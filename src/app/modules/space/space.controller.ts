@@ -179,6 +179,16 @@ const getMySpaces = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getRecentSpaces = catchAsync(async (req: Request, res: Response) => {
+  const result = await SpaceService.getRecentSpacesFromDB();
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Spaces fetched successfully',
+    data: result,
+  });
+});
+
 export const SpaceController = {
   createSpace,
   updateSpace,
@@ -189,6 +199,7 @@ export const SpaceController = {
   removeSpaceFacilities,
   getAllSpaces,
   getSpaceStatus,
+  getRecentSpaces,
   filterSpaces,
   getProviders,
 };

@@ -17,6 +17,8 @@ router.post(
 router.get('/status', SpaceController.getSpaceStatus);
 router.get('/filter', SpaceController.filterSpaces);
 router.get('/providers', SpaceController.getProviders);
+router.get('/recent', SpaceController.getRecentSpaces);
+
 router.get(
   '/my-spaces',
   auth(USER_ROLES.SPACEPROVIDER),
@@ -48,5 +50,4 @@ router.patch(
 );
 router.get('/:id', SpaceController.getSpaceById);
 router.get('/', SpaceController.getAllSpaces);
-
 export const SpaceRoutes = router;
