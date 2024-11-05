@@ -45,14 +45,9 @@ const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
   return createUser;
 };
 
-/*************  ✨ Codeium Command ⭐  *************/
-/**
- * Get user profile from DB
- * @param {JwtPayload} user - The jwt payload data
- * @returns {Promise<Partial<any>>} - The user profile data
- * @throws {ApiError} - If user doesn't exist or has not bought any package yet
- */
-/******  eb5b7018-475e-4af5-a306-4a44fdafd272  *******/const getUserProfileFromDB = async (user: JwtPayload): Promise<Partial<any>> => {
+const getUserProfileFromDB = async (
+  user: JwtPayload
+): Promise<Partial<any>> => {
   const { id } = user;
   const isExistUser = await User.findById(id).select('-password');
   if (!isExistUser) {
@@ -61,10 +56,13 @@ const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
 
   const userSubscription = await Subscription.findOne({
     providerId: id,
-  }).populate("package");
+  }).populate('package');
 
-  if(!userSubscription) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "You have not bought any package yet!");
+  if (!userSubscription) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'You have not bought any package yet!'
+    );
   }
   if (isExistUser.role !== USER_ROLES.SPACEPROVIDER) {
     return isExistUser;
@@ -96,7 +94,7 @@ const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
   console.log({
     subscriptionCreated: subscriptionDate.toISOString(),
     periodStart: startDate.toISOString(),
-    periodEnd: endDate.toISOString()
+    periodEnd: endDate.toISOString(),
   });
 
   const finalResult = {
@@ -105,7 +103,7 @@ const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
     //@ts-ignore
     allowedSpaces: userSubscription?.package.allowedSpaces!,
     spacesPosted: spacesPosted.length,
-    deadLine: endDate.toDateString(), 
+    deadLine: endDate.toDateString(),
   };
 
   return finalResult;
@@ -121,16 +119,16 @@ const updateProfileToDB = async (
   }
 
   //unlink file here
-  if (payload.profile) {
+  if (payload.profile && isExistUser.profile !== '/profiles/default.png') {
     unlinkFile(isExistUser.profile);
   }
-  if (payload.banner) {
+  if (payload.banner && isExistUser.banner !== '/banners/default.png') {
     unlinkFile(isExistUser.banner);
   }
-  if(payload.profile === null){
+  if (payload.profile === null) {
     payload.profile = isExistUser.profile;
   }
-  if(payload.banner === null){
+  if (payload.banner === null) {
     payload.banner = isExistUser.banner;
   }
 

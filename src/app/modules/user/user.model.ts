@@ -13,9 +13,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       required: true,
     },
-    banner:{
+    banner: {
       type: String,
-      required: false
+      required: false,
+      default: '/banners/default.png',
     },
     role: {
       type: String,

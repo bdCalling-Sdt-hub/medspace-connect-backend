@@ -55,11 +55,11 @@ const getUserProfile = catchAsync(async (req: Request, res: Response) => {
 const updateProfile = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
-    let profile:any = null;
-    let banner:any = null;
+    let profile: any = null;
+    let banner: any = null;
     if (req.files && 'profile' in req.files && req.files.profile[0]) {
       profile = `/profiles/${req.files.profile[0].filename}`;
-    }else if (req.files && 'banner' in req.files && req.files.banner[0]) {
+    } else if (req.files && 'banner' in req.files && req.files.banner[0]) {
       banner = `/banners/${req.files.banner[0].filename}`;
     }
 
@@ -78,8 +78,6 @@ const updateProfile = catchAsync(
     });
   }
 );
-
-
 
 const userStatistic = catchAsync(async (req: Request, res: Response) => {
   const { year } = req.query;
