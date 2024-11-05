@@ -3,6 +3,7 @@ import ApiError from '../../../errors/ApiError';
 import { Favourite } from './favourite.model';
 import { IFavourite } from './favourite.interface';
 import { ObjectId, Types } from 'mongoose';
+import { populate } from 'dotenv';
 
 const createFavourite = async (
   payload: IFavourite
@@ -58,7 +59,10 @@ const deleteFavouriteToDB = async (id: any): Promise<IFavourite | null> => {
 const getFavouriteByUserId = async (
   userId: string
 ): Promise<IFavourite[] | null> => {
-  const result: any = await Favourite.find({ userId }).populate('spaceId');
+  const result: any = await Favourite.find({ userId }).populate({
+    path: 'spaceId',
+    populate: { path: 'providerId' },
+  });
   if (!result) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Favourites not found');
   }
