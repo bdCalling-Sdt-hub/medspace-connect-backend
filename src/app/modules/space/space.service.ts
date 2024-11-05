@@ -94,6 +94,9 @@ const updateSpaceToDB = async (
   if (!isExist) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Space not found!');
   }
+  if(payload.spaceImages === null) {
+    payload.spaceImages = isExist.spaceImages
+  }
   if (isExist.providerId.toString() !== userId) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'You are not authorized!');
   }
@@ -218,7 +221,8 @@ const getAllSpacesFromDB = async (paginationOptions: IPaginationOptions) => {
   const result = await Space.find()
     .sort({ [sortBy]: sortOrder })
     .skip(skip)
-    .limit(limit);
+    .limit(limit)
+    .populate('providerId');
 
   const total = await Space.countDocuments();
 
@@ -309,8 +313,8 @@ const getMySpacesFromDB = async (userId: string): Promise<ISpace[]> => {
   if (!isExistProvider) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found!');
   }
-  const result = await Space.find({ providerId: isExistProvider._id });
-  console.log(result);
+  const result = await Space.find({ providerId: isExistProvider._id }).populate(
+    'providerId');
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Spaces not found!');
   }

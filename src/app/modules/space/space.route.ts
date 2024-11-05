@@ -25,7 +25,8 @@ router.get(
 router.patch(
   '/:id',
   auth(USER_ROLES.SPACEPROVIDER),
-  validateRequest(SpaceValidation.updateSpaceZodSchema),
+  fileUploadHandler(),
+  // validateRequest(SpaceValidation.updateSpaceZodSchema),
   SpaceController.updateSpace
 );
 router.patch(

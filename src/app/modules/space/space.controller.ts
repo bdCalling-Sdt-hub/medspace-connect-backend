@@ -49,12 +49,13 @@ const updateSpace = catchAsync(async (req: Request, res: Response) => {
       'You are not authorized to update this space!'
     );
   }
+  let spaceImages:string[]|null = null;
   if (req.files && 'spaceImages' in req.files) {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      'You cannot update space images in this route!'
+    spaceImages = (req.files.spaceImages as Express.Multer.File[]).map(
+      file => `/spaceImages/${file.filename}`
     );
   }
+  data.spaceImages = spaceImages
   const result = await SpaceService.updateSpaceToDB(id, data, userId);
   sendResponse(res, {
     success: true,
