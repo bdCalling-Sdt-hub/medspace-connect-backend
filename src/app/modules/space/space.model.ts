@@ -12,7 +12,7 @@ const spaceSchema = new Schema<ISpace, SpaceModel>(
   {
     spaceImages: {
       type: [String],
-      required: [true, 'Space images are required'], 
+      required: [true, 'Space images are required'],
     },
     providerId: {
       type: Schema.Types.ObjectId,

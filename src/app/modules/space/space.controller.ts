@@ -10,7 +10,7 @@ import { USER_ROLES } from '../../../enums/user';
 const createSpace = catchAsync(async (req: Request, res: Response) => {
   let spaceData = req.body.data;
 
-  console.log(req)
+  console.log(req);
   spaceData = await JSON.parse(spaceData);
   await SpaceValidation.createSpaceZodSchema.parseAsync(spaceData);
   const { id } = req.user;
@@ -43,19 +43,20 @@ const updateSpace = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const data = req.body;
   const userId = req.user.id;
+  console.log(data);
   if (!req.user || req.user.role !== USER_ROLES.SPACEPROVIDER) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
       'You are not authorized to update this space!'
     );
   }
-  let spaceImages:string[]|null = null;
+  let spaceImages: string[] | null = null;
   if (req.files && 'spaceImages' in req.files) {
     spaceImages = (req.files.spaceImages as Express.Multer.File[]).map(
       file => `/spaceImages/${file.filename}`
     );
   }
-  data.spaceImages = spaceImages
+  data.spaceImages = spaceImages;
   const result = await SpaceService.updateSpaceToDB(id, data, userId);
   sendResponse(res, {
     success: true,
@@ -177,7 +178,7 @@ const getMySpaces = catchAsync(async (req: Request, res: Response) => {
     message: 'Spaces fetched successfully',
     data: result,
   });
-})
+});
 export const SpaceController = {
   createSpace,
   updateSpace,

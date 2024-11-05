@@ -53,6 +53,9 @@ const getUserProfileFromDB = async (
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "User doesn't exist!");
   }
+  if (isExistUser.role !== USER_ROLES.SPACEPROVIDER) {
+    return { user: isExistUser };
+  }
 
   const userSubscription = await Subscription.findOne({
     providerId: id,
@@ -63,9 +66,6 @@ const getUserProfileFromDB = async (
       StatusCodes.BAD_REQUEST,
       'You have not bought any package yet!'
     );
-  }
-  if (isExistUser.role !== USER_ROLES.SPACEPROVIDER) {
-    return isExistUser;
   }
 
   // Create dates in UTC to match the stored format

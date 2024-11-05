@@ -21,7 +21,9 @@ const updateSpaceZodSchema = z.object({
   location: z
     .string({ invalid_type_error: 'location must be a string' })
     .optional(),
-    speciality: z.string({ invalid_type_error: 'speciality must be a string' }).optional(),
+  speciality: z
+    .string({ invalid_type_error: 'speciality must be a string' })
+    .optional(),
   openingDate: z
     .string({ invalid_type_error: 'openingDate must be a string' })
     .optional(),
