@@ -5,6 +5,7 @@ import auth from '../../middlewares/auth';
 const router = express.Router();
 
 router.post('/create', SubscriberController.createSubscriber);
+router.post('/send', auth(USER_ROLES.ADMIN), SubscriberController.sendEmail);
 router.get('/', SubscriberController.getAllSubscribers);
 router.get('/:id', SubscriberController.getSubscriberById);
 router.get('/email/:email', SubscriberController.getSubscriberByEmail);

@@ -53,10 +53,20 @@ const deleteSubscriber = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const sendEmail = catchAsync(async (req: Request, res: Response) => {
+  const result = await SubscriberService.sendEmailToDB(req.body);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Email sent successfully',
+    data: result,
+  });
+});
 
 export const SubscriberController = {
   createSubscriber,
   getAllSubscribers,
+  sendEmail,
   getSubscriberById,
   getSubscriberByEmail,
   deleteSubscriber,

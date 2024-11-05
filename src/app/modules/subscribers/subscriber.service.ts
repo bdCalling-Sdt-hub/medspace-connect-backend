@@ -2,6 +2,7 @@ import { ISubscriber } from './subscriber.interface';
 import { Subscriber } from './subscriber.model';
 import ApiError from '../../../errors/ApiError';
 import { StatusCodes } from 'http-status-codes';
+import { emailHelper } from '../../../helpers/emailHelper';
 const createSubscriber = async (payload: ISubscriber) => {
   const result = await Subscriber.create(payload);
   if (!result) {
@@ -36,9 +37,15 @@ const deleteSubscriber = async (id: string) => {
   }
   return result;
 };
+const sendEmailToDB = async (payload: ISubscriber) => {
+  // emailHelper.sendEmail
+  // return result;
+};
+
 export const SubscriberService = {
   createSubscriber,
   getAllSubscribers,
+  sendEmailToDB,
   getSubscriberById,
   getSubscriberByEmail,
   deleteSubscriber,

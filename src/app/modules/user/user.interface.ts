@@ -18,7 +18,7 @@ export type IUser = {
   profile?: string;
   banner?: string;
   NIDOrPassportNo?: string;
-  education?: Education[];
+  education?: Education;
   occupation?: string;
   status: 'active' | 'delete';
   deviceTokens?: string[];

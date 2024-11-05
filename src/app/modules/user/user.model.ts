@@ -56,9 +56,41 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       required: false,
     },
+    occupation: {
+      type: String,
+      required: false,
+      default: '',
+    },
+    education: {
+      degree: {
+        type: String,
+        required: false,
+        default: '',
+      },
+      institutionName: {
+        type: String,
+        required: false,
+        default: '',
+      },
+      institutionLocation: {
+        type: String,
+        required: false,
+        default: '',
+      },
+      startYear: {
+        type: String,
+        required: false,
+        default: '',
+      },
+      endYear: {
+        type: String,
+        required: false,
+        default: '',
+      },
+    },
     profile: {
       type: String,
-      default: 'https://i.ibb.co/z5YHLV9/profile.png',
+      default: '/profiles/default.png',
     },
     status: {
       type: String,
