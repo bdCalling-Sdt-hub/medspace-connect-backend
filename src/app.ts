@@ -47,13 +47,13 @@ app.get('/', (req: Request, res: Response) => {
     '<h1 style="text-align:center; color:#A55FEF; font-family:Verdana;">Hey, How can I assist you today!</h1>'
   );
 });
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-  logger.error(err); // Log the error
-  res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-    success: false,
-    message: 'An error occurred, please try again later.',
-  });
-});
+// app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+//   logger.error(err); // Log the error
+//   res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+//     success: false,
+//     message: 'An error occurred, please try again later.',
+//   });
+// });
 //global error handle
 app.use(globalErrorHandler);
 

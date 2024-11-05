@@ -13,9 +13,15 @@ router.post(
   fileUploadHandler(),
   SpaceController.createSpace
 );
+
 router.get('/status', SpaceController.getSpaceStatus);
 router.get('/filter', SpaceController.filterSpaces);
 router.get('/providers', SpaceController.getProviders);
+router.get(
+  '/my-spaces',
+  auth(USER_ROLES.SPACEPROVIDER),
+  SpaceController.getMySpaces
+);
 router.patch(
   '/:id',
   auth(USER_ROLES.SPACEPROVIDER),

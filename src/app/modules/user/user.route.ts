@@ -36,10 +36,5 @@ router.post(
   UserController.registerDeviceToken
 );
 
-router.post(
-  '/device-token',
-  auth(USER_ROLES.ADMIN, USER_ROLES.SPACEPROVIDER, USER_ROLES.SPACESEEKER),
-  UserController.manageDeviceToken
-);
 
 export const UserRoutes = router;

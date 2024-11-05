@@ -5,6 +5,7 @@ import sendResponse from '../../../shared/sendResponse';
 import { UserService } from './user.service';
 import { User } from './user.model';
 import ApiError from '../../../errors/ApiError';
+import unlinkFile from '../../../shared/unlinkFile';
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -54,13 +55,17 @@ const getUserProfile = catchAsync(async (req: Request, res: Response) => {
 const updateProfile = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const user = req.user;
-    let profile;
-    if (req.files && 'image' in req.files && req.files.image[0]) {
-      profile = `/images/${req.files.image[0].filename}`;
+    let profile:any = null;
+    let banner:any = null;
+    if (req.files && 'profile' in req.files && req.files.profile[0]) {
+      profile = `/profiles/${req.files.profile[0].filename}`;
+    }else if (req.files && 'banner' in req.files && req.files.banner[0]) {
+      banner = `/banners/${req.files.banner[0].filename}`;
     }
 
     const data = {
       profile,
+      banner,
       ...req.body,
     };
     const result = await UserService.updateProfileToDB(user, data);
@@ -74,30 +79,7 @@ const updateProfile = catchAsync(
   }
 );
 
-//manage device token
-const manageDeviceToken = catchAsync(async (req: Request, res: Response) => {
-  const { token, action } = req.body;
-  if (!token || !action) {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      'Token and action are required'
-    );
-  }
-  if (action !== 'add' && action !== 'remove') {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      'Invalid action action can only be add or remove'
-    );
-  }
-  const userId = req.user.id;
-  await UserService.manageDeviceToken(userId, token, action);
 
-  sendResponse(res, {
-    success: true,
-    statusCode: StatusCodes.OK,
-    message: 'Device token managed successfully',
-  });
-});
 
 const userStatistic = catchAsync(async (req: Request, res: Response) => {
   const { year } = req.query;
@@ -115,6 +97,5 @@ export const UserController = {
   getUserProfile,
   updateProfile,
   registerDeviceToken,
-  manageDeviceToken,
   userStatistic,
 };

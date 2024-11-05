@@ -12,24 +12,24 @@ const spaceSchema = new Schema<ISpace, SpaceModel>(
   {
     spaceImages: {
       type: [String],
-      required: true,
+      required: [true, 'Space images are required'], 
     },
     providerId: {
       type: Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      required: [true, 'Provider is required'],
     },
     title: {
       type: String,
-      required: true,
+      required: [true, 'Title is required'],
     },
     price: {
       type: Number,
-      required: true,
+      required: [true, 'Price is required'],
     },
     priceType: {
       type: String,
-      required: true,
+      required: [true, 'Price type is required'],
     },
     status: {
       type: String,
@@ -39,19 +39,19 @@ const spaceSchema = new Schema<ISpace, SpaceModel>(
     },
     location: {
       type: String,
-      required: true,
+      required: [true, 'Location is required'],
     },
     openingDate: {
       type: String,
-      required: true,
+      required: [true, 'Opening date is required'],
     },
     practiceFor: {
       type: String,
-      required: true,
+      required: [true, 'Practice for is required'],
     },
     facilities: {
       type: [String],
-      required: true,
+      required: [true, 'Facilities are required'],
     },
     speciality: {
       type: String,
@@ -59,7 +59,7 @@ const spaceSchema = new Schema<ISpace, SpaceModel>(
     },
     description: {
       type: String,
-      required: true,
+      required: [true, 'Description is required'],
     },
   },
 

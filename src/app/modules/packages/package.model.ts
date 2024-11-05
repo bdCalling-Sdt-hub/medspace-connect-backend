@@ -5,11 +5,11 @@ const packageSchema = new Schema<IPackage, PackageModel>(
   {
     name: {
       type: String,
-      required: true,
+      required: [true, 'Name is required'],
     },
     price: {
       type: Number,
-      required: true,
+      required: [true, 'Price is required'],
     },
     priceId: {
       type: String,
@@ -17,11 +17,11 @@ const packageSchema = new Schema<IPackage, PackageModel>(
     },
     features: {
       type: [String],
-      required: true,
+      required: [true, 'Features are required'],
     },
     allowedSpaces: {
       type: Number,
-      required: true,
+      required: [true, 'Allowed spaces are required'],
     },
     stripeProductId: {
       type: String,

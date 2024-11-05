@@ -16,6 +16,7 @@ export type IUser = {
   password: string;
   location?: string;
   profile?: string;
+  banner?: string;
   NIDOrPassportNo?: string;
   education?: Education[];
   occupation?: string;

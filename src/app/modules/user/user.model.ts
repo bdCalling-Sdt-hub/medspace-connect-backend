@@ -13,6 +13,10 @@ const userSchema = new Schema<IUser, UserModal>(
       type: String,
       required: true,
     },
+    banner:{
+      type: String,
+      required: false
+    },
     role: {
       type: String,
       enum: Object.values(USER_ROLES),

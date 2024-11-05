@@ -9,6 +9,8 @@ import { USER_ROLES } from '../../../enums/user';
 
 const createSpace = catchAsync(async (req: Request, res: Response) => {
   let spaceData = req.body.data;
+
+  console.log(req)
   spaceData = await JSON.parse(spaceData);
   await SpaceValidation.createSpaceZodSchema.parseAsync(spaceData);
   const { id } = req.user;
@@ -165,10 +167,21 @@ const getSpaceStatus = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+const getMySpaces = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.id.toString();
+  const result = await SpaceService.getMySpacesFromDB(userId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Spaces fetched successfully',
+    data: result,
+  });
+})
 export const SpaceController = {
   createSpace,
   updateSpace,
   updateSpaceImages,
+  getMySpaces,
   getSpaceById,
   addSpaceFacilities,
   removeSpaceFacilities,

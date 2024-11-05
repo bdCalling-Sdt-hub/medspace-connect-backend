@@ -12,6 +12,7 @@ import { Subscription } from '../subscription/subscription.model';
 import { IPaginationOptions } from '../../../types/pagination';
 import { paginationHelper } from '../../../helpers/paginationHelper';
 import { Conversation } from '../conversation/conversation.model';
+import mongoose from 'mongoose';
 
 const createSpaceToDB = async (
   payload: ISpace,
@@ -303,6 +304,18 @@ const getSpaceStatusFromDB = async (): Promise<any[]> => {
   };
   return finalResult;
 };
+const getMySpacesFromDB = async (userId: string): Promise<ISpace[]> => {
+  const isExistProvider = await User.findById(userId);
+  if (!isExistProvider) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found!');
+  }
+  const result = await Space.find({ providerId: isExistProvider._id });
+  console.log(result);
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Spaces not found!');
+  }
+  return result;
+}
 
 export const SpaceService = {
   createSpaceToDB,
@@ -312,6 +325,7 @@ export const SpaceService = {
   addSpaceFacilitiesToDB,
   filterSpacesFromDB,
   removeSpaceFacilitiesToDB,
+  getMySpacesFromDB,
   getSpaceByIdFromDB,
   getAllSpacesFromDB,
   getProvidersFromDB,
