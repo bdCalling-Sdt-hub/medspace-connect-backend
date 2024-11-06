@@ -27,6 +27,9 @@ const fileUploadHandler = () => {
         case 'image':
           uploadDir = path.join(baseUploadDir, 'images');
           break;
+        case 'icon':
+          uploadDir = path.join(baseUploadDir, 'icons');
+          break;
         case 'profile':
           uploadDir = path.join(baseUploadDir, 'profiles');
           break;
@@ -74,6 +77,7 @@ const fileUploadHandler = () => {
       file.fieldname === 'image' ||
       file.fieldname === 'spaceImages' ||
       file.fieldname === 'banner' ||
+      file.fieldname === 'icon' ||
       file.fieldname === 'profile' ||
       file.fieldname === 'aboutImage'
     ) {
@@ -143,6 +147,7 @@ const fileUploadHandler = () => {
     { name: 'spaceImages', maxCount: 4 },
     { name: 'banner', maxCount: 1 },
     { name: 'media', maxCount: 3 },
+    { name: 'icon', maxCount: 1 },
     { name: 'doc', maxCount: 3 },
     { name: 'profile', maxCount: 1 },
     { name: 'messageFiles', maxCount: 5 },

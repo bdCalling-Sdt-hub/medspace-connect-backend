@@ -12,6 +12,7 @@ import { InfoRoute } from '../app/modules/info/info.route';
 import { SupportItemRoute } from '../app/modules/supportItem/supportItem.route';
 import { FavouriteRoute } from '../app/modules/favourite/favourite.route';
 import { adminRoutes } from '../app/modules/user/admin/admin.route';
+import { LinksRoutes } from '../app/modules/links/links.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -67,6 +68,10 @@ const apiRoutes = [
   {
     path: '/admin',
     route: adminRoutes,
+  },
+  {
+    path: '/link',
+    route: LinksRoutes,
   },
 ];
 

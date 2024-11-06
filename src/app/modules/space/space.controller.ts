@@ -143,7 +143,7 @@ const getAllSpaces = catchAsync(async (req: Request, res: Response) => {
 });
 const filterSpaces = catchAsync(async (req: Request, res: Response) => {
   console.log(req.query);
-  const result = await SpaceService.filterSpacesFromDB(req.query);
+  const result = await SpaceService.searchAndFilterSpaces(req.query);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,
@@ -198,6 +198,7 @@ const getInterestedSpaces = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
+
 export const SpaceController = {
   createSpace,
   updateSpace,

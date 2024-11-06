@@ -240,52 +240,110 @@ const getAllSpacesFromDB = async (paginationOptions: IPaginationOptions) => {
   };
 };
 
-const filterSpacesFromDB = async (query: any): Promise<ISpace[]> => {
-  const filterableFields = [
-    'title',
-    'price',
-    'status',
-    'priceType',
-    'location',
-    'openingDate',
-    'practiceFor',
-    'facilities',
-    'description',
-  ];
+const searchAndFilterSpaces = async (filterOptions: any) => {
+  try {
+    const { search, ...otherFilters } = filterOptions;
+    let baseQuery: any = { status: SPACE_STATUS.ACTIVE };
 
-  const filter: any = {};
-
-  Object.keys(query).forEach(key => {
-    if (filterableFields.includes(key)) {
-      if (key === 'facilities') {
-        filter[key] = { $in: query[key].split(',') };
-      } else if (
-        key === 'title' ||
-        key === 'description' ||
-        key === 'location'
-      ) {
-        filter[key] = { $regex: query[key], $options: 'i' };
-      } else {
-        filter[key] = query[key];
-      }
+    // Handle search term if provided
+    if (search) {
+      const searchWords = search.trim().toLowerCase().split(/\s+/);
+      baseQuery.$or = searchWords.map((word: any) => ({
+        $or: [
+          { title: { $regex: word, $options: 'i' } },
+          { description: { $regex: word, $options: 'i' } },
+          { facilities: { $regex: word, $options: 'i' } },
+        ],
+      }));
     }
-  });
 
-  if (query.priceRange) {
-    const [min, max] = query.priceRange.split('-');
-    filter.price = { $gte: parseFloat(min), $lte: parseFloat(max) };
-  }
+    // Handle other filters
+    const filterableFields = [
+      'price',
+      'priceType',
+      'location',
+      'openingDate',
+      'practiceFor',
+    ];
 
-  const result = await Space.find(filter, { status: SPACE_STATUS.ACTIVE });
+    Object.keys(otherFilters).forEach(key => {
+      if (filterableFields.includes(key)) {
+        if (key === 'location') {
+          baseQuery[key] = { $regex: otherFilters[key], $options: 'i' };
+        } else {
+          baseQuery[key] = otherFilters[key];
+        }
+      }
+    });
 
-  if (!result.length) {
+    // Handle facilities filter
+    if (otherFilters.facilities) {
+      baseQuery.facilities = {
+        $in: otherFilters.facilities
+          .split(',')
+          .map((f: any) => new RegExp(f.trim(), 'i')),
+      };
+    }
+
+    // Handle price range
+    if (otherFilters.priceRange) {
+      const [min, max] = otherFilters.priceRange.split('-');
+      baseQuery.price = {
+        $gte: parseFloat(min),
+        $lte: parseFloat(max),
+      };
+    }
+
+    // Fetch spaces with all filters applied
+    const spaces = await Space.find(baseQuery).populate('providerId').lean();
+
+    if (search) {
+      // Calculate match scores only if there's a search term
+      const searchWords = search.trim().toLowerCase().split(/\s+/);
+      const rankedSpaces = spaces.map(space => {
+        let matchScore = 0;
+        const spaceText = `${space.title} ${
+          space.description
+        } ${space.facilities.join(' ')}`.toLowerCase();
+
+        searchWords.forEach((word: any) => {
+          if (spaceText.includes(word.toLowerCase())) {
+            matchScore++;
+          }
+        });
+
+        return {
+          ...space,
+          matchScore,
+        };
+      });
+
+      // Sort by match score first, then by date
+      const sortedSpaces = rankedSpaces.sort((a, b) => {
+        if (b.matchScore !== a.matchScore) {
+          return b.matchScore - a.matchScore;
+        }
+        return (
+          //@ts-ignore
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+        );
+      });
+
+      return sortedSpaces.map(({ matchScore, ...space }) => space);
+    }
+
+    // If no search term, just return filtered spaces sorted by date
+    return spaces.sort(
+      (a, b) =>
+        //@ts-ignore
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  } catch (error) {
     throw new ApiError(
-      StatusCodes.NOT_FOUND,
-      'No spaces found matching the criteria'
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      'Error searching and filtering spaces'
     );
   }
-
-  return result;
 };
 const getProvidersFromDB = async (): Promise<IUser[]> => {
   const result = await User.find({ role: USER_ROLES.SPACEPROVIDER }).select(
@@ -387,13 +445,14 @@ const getInterestedSpacesFromDB = async (userId: string): Promise<ISpace[]> => {
 
   return finalResult;
 };
+
 export const SpaceService = {
   createSpaceToDB,
   getSpaceStatusFromDB,
   updateSpaceToDB,
   updateSpaceImagesToDB,
   addSpaceFacilitiesToDB,
-  filterSpacesFromDB,
+  searchAndFilterSpaces,
   removeSpaceFacilitiesToDB,
   getMySpacesFromDB,
   getSpaceByIdFromDB,

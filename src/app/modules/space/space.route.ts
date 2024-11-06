@@ -18,7 +18,6 @@ router.get('/status', SpaceController.getSpaceStatus);
 router.get('/filter', SpaceController.filterSpaces);
 router.get('/providers', SpaceController.getProviders);
 router.get('/recent', SpaceController.getRecentSpaces);
-
 router.get(
   '/my-spaces',
   auth(USER_ROLES.SPACEPROVIDER),
