@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { StatusCodes } from 'http-status-codes';
 import { model, Schema, Types } from 'mongoose';
 import config from '../../../config';
-import { USER_ROLES } from '../../../enums/user';
+import { ADMIN_TYPES, USER_ROLES } from '../../../enums/user';
 import ApiError from '../../../errors/ApiError';
 import { IUser, UserModal } from './user.interface';
 import { Subscriber } from '../subscribers/subscriber.model';
@@ -12,6 +12,11 @@ const userSchema = new Schema<IUser, UserModal>(
     name: {
       type: String,
       required: true,
+    },
+    adminType: {
+      type: String,
+      enum: ADMIN_TYPES,
+      required: false,
     },
     banner: {
       type: String,
@@ -31,7 +36,7 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     contact: {
       type: String,
-      required: true,
+      required: false,
     },
     password: {
       type: String,

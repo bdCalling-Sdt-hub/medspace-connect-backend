@@ -188,12 +188,22 @@ const getRecentSpaces = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-
+const getInterestedSpaces = catchAsync(async (req: Request, res: Response) => {
+  const userId = req.user.id.toString();
+  const result = await SpaceService.getInterestedSpacesFromDB(userId);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Spaces fetched successfully',
+    data: result,
+  });
+});
 export const SpaceController = {
   createSpace,
   updateSpace,
   updateSpaceImages,
   getMySpaces,
+  getInterestedSpaces,
   getSpaceById,
   addSpaceFacilities,
   removeSpaceFacilities,

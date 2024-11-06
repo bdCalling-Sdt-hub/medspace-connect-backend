@@ -335,6 +335,22 @@ const getRecentSpacesFromDB = async (): Promise<ISpace[]> => {
   }
   return result;
 };
+const getInterestedSpacesFromDB = async (userId: string): Promise<ISpace[]> => {
+  const isExistUser = await User.findById(userId);
+  if (!isExistUser) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found!');
+  }
+  const interestedSpaces = await Conversation.find({
+    spaceSeeker: isExistUser._id,
+  }).populate({
+    path: 'spaceId',
+    populate: { path: 'providerId' },
+  });
+  if (!interestedSpaces) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Spaces not found!');
+  }
+  return interestedSpaces.map((item: any) => item.spaceId);
+};
 export const SpaceService = {
   createSpaceToDB,
   getSpaceStatusFromDB,
@@ -348,4 +364,5 @@ export const SpaceService = {
   getAllSpacesFromDB,
   getProvidersFromDB,
   getRecentSpacesFromDB,
+  getInterestedSpacesFromDB,
 };

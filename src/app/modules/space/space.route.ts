@@ -24,6 +24,11 @@ router.get(
   auth(USER_ROLES.SPACEPROVIDER),
   SpaceController.getMySpaces
 );
+router.get(
+  '/interested-spaces',
+  auth(USER_ROLES.SPACESEEKER),
+  SpaceController.getInterestedSpaces
+);
 router.patch(
   '/:id',
   auth(USER_ROLES.SPACEPROVIDER),

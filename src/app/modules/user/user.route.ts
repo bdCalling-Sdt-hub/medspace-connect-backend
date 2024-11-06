@@ -36,5 +36,4 @@ router.post(
   UserController.registerDeviceToken
 );
 
-
 export const UserRoutes = router;

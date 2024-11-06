@@ -1,5 +1,5 @@
 import { Model, Types } from 'mongoose';
-import { USER_ROLES } from '../../../enums/user';
+import { ADMIN_TYPES, USER_ROLES } from '../../../enums/user';
 interface Education {
   degree: string;
   institutionName: string;
@@ -10,9 +10,10 @@ interface Education {
 export type IUser = {
   name: string;
   role: USER_ROLES;
-  contact: string;
+  contact?: string;
   isSubscribed: boolean;
   email: string;
+  adminType?: ADMIN_TYPES.SUPERADMIN | ADMIN_TYPES.ADMIN;
   password: string;
   location?: string;
   profile?: string;
