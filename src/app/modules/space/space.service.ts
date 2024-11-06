@@ -340,16 +340,52 @@ const getInterestedSpacesFromDB = async (userId: string): Promise<ISpace[]> => {
   if (!isExistUser) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'User not found!');
   }
+
   const interestedSpaces = await Conversation.find({
     spaceSeeker: isExistUser._id,
   }).populate({
     path: 'spaceId',
     populate: { path: 'providerId' },
   });
+
   if (!interestedSpaces) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Spaces not found!');
   }
-  return interestedSpaces.map((item: any) => item.spaceId);
+
+  const finalResult = interestedSpaces.map((item: any) => {
+    const conversationStarted = new Date(item.createdAt);
+    const todaysDate = new Date();
+
+    const totalDays = Math.floor(
+      (todaysDate.getTime() - conversationStarted.getTime()) /
+        (1000 * 60 * 60 * 24)
+    );
+
+    // Calculate months and remaining days
+    const months = Math.floor(totalDays / 30);
+    const remainingDays = totalDays % 30;
+
+    // Create appropriate string based on months and days
+    let activeSince = '';
+    if (months > 0 && remainingDays > 0) {
+      activeSince = `${months} month${
+        months > 1 ? 's' : ''
+      } and ${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
+    } else if (months > 0) {
+      activeSince = `${months} month${months > 1 ? 's' : ''}`;
+    } else {
+      activeSince = `${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
+    }
+
+    const finalData = {
+      ...item.spaceId._doc,
+      activeSince,
+      interestedSince: conversationStarted.toDateString(),
+    };
+    return finalData;
+  });
+
+  return finalResult;
 };
 export const SpaceService = {
   createSpaceToDB,
