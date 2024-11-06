@@ -12,7 +12,7 @@ export type ISpace = {
   providerId: Types.ObjectId;
   title: string;
   price: number;
-  priceType: string;
+  priceType: 'Yearly' | 'Monthly';
   status?: SPACE_STATUS;
   location: string;
   openingDate: string;

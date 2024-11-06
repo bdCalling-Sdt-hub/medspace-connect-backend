@@ -29,6 +29,7 @@ const spaceSchema = new Schema<ISpace, SpaceModel>(
     },
     priceType: {
       type: String,
+      enum: ['Monthly', 'Yearly'],
       required: [true, 'Price type is required'],
     },
     status: {

@@ -210,10 +210,11 @@ const removeSpaceFacilitiesToDB = async (
   return result;
 };
 const getSpaceByIdFromDB = async (id: string): Promise<ISpace | null> => {
-  const result = await Space.findById(id);
+  const result = await Space.findById(id).populate('providerId');
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Space not found!');
   }
+
   return result;
 };
 const getAllSpacesFromDB = async (paginationOptions: IPaginationOptions) => {
