@@ -39,17 +39,17 @@ import { Schema, model } from 'mongoose';
 import { I${capitalizedModuleName}, ${capitalizedModuleName}Model } from './${name}.interface';
 
 const ${name}Schema = new Schema<I${capitalizedModuleName}, ${capitalizedModuleName}Model>({
-  ${fields.map(field => `${field.name}: { type: ${field.type.replace(field.type[0], field.type[0].toUpperCase())}, required: true }`).join(',\n  ')}
+  ${fields.map(field => `${field.name}: ${field.type.includes("ref")?`{ type: Schema.Types.ObjectId, ref: '${field.type.split('=>')[1]}', required: true }`:`{ type: ${field.type.replace(field.type[0], field.type[0].toUpperCase())}, required: true }`}`).join(',\n  ')}
 }, { timestamps: true });
 
 export const ${capitalizedModuleName} = model<I${capitalizedModuleName}, ${capitalizedModuleName}Model>('${capitalizedModuleName}', ${name}Schema);
       `;
     case 'interface':
       return `
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 
 export type I${capitalizedModuleName} = {
-  ${fields.map(field => `${field.name}: ${field.type}`).join(';\n  ')}
+  ${fields.map(field => `${field.name}: ${field.type.includes('ref') ? 'Types.ObjectId' : `${field.type==='date'?'Date':field.type}`};`).join('\n  ')}
 };
 
 export type ${capitalizedModuleName}Model = Model<I${capitalizedModuleName}>;
@@ -111,12 +111,12 @@ import { z } from 'zod';
 export const ${capitalizedModuleName}Validation = {
   create${capitalizedModuleName}ZodSchema: z.object({
     body: z.object({
-      ${fields.map(field => `${field.name}: z.${field.type}({required_error:"${field.name==='Date'?'date':field.name} is required", invalid_type_error:"${field.name} should be type ${field.type}"})`).join(',\n      ')}
+      ${fields.map(field => `${field.name}: z.${field.type.includes('ref')?"string":field.type}({required_error:"${field.name==='Date'?'date':field.name} is required", invalid_type_error:"${field.name} should be type ${field.type.includes('ref')?"objectID or string":field.type}"})`).join(',\n      ')}
     }),
   }),
   update${capitalizedModuleName}ZodSchema: z.object({
-    body: z.object({
-      ${fields.map(field => `${field.name}: z.${field.type}({invalid_type_error:"${field.name} should be type ${field.type}"}).optional()`).join(',\n      ')}
+ body: z.object({
+      ${fields.map(field => `${field.name}: z.${field.type.includes('ref')?"string":field.type}({invalid_type_error:"${field.name} should be type ${field.type.includes('ref')?"objectID or string":field.type}"}).optional()`).join(',\n      ')}
     }),
   }),
 };

@@ -31,6 +31,7 @@ router.patch(
   // validateRequest(SpaceValidation.updateSpaceZodSchema),
   SpaceController.updateSpace
 );
+
 router.patch(
   '/:id/images',
   auth(USER_ROLES.SPACEPROVIDER),
