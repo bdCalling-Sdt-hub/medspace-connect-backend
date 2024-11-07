@@ -26,8 +26,8 @@ export const startNotificationConsumer = async (io: Server) => {
             );
 
             // Emit to Socket.IO only
-            io.to(`user::${notificationData.receiverId}`).emit(
-              'new_notification',
+            io.emit(
+              `new_notification::${notificationData.receiverId.toString()}`,
               notificationData
             );
           }

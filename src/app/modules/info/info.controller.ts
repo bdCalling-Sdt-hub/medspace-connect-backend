@@ -18,7 +18,12 @@ const createInfo = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAllInfo = catchAsync(async (req: Request, res: Response) => {
-  const result = await InfoService.getAllInfoFromDB();
+  let result: any;
+  if (req.query.name) {
+    result = await InfoService.getInfoByNameFromDB(req.query.name as string);
+  } else {
+    result = await InfoService.getAllInfoFromDB();
+  }
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,

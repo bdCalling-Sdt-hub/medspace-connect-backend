@@ -47,6 +47,7 @@ const getInfoByNameFromDB = async (name: string) => {
   }
   return result;
 };
+
 export const InfoService = {
   createInfoToDB,
   updateInfoToDB,

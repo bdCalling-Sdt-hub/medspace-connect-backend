@@ -16,6 +16,7 @@ router.get('/filter', space_controller_1.SpaceController.filterSpaces);
 router.get('/providers', space_controller_1.SpaceController.getProviders);
 router.get('/recent', space_controller_1.SpaceController.getRecentSpaces);
 router.get('/my-spaces', (0, auth_1.default)(user_1.USER_ROLES.SPACEPROVIDER), space_controller_1.SpaceController.getMySpaces);
+router.get('/interested-spaces', (0, auth_1.default)(user_1.USER_ROLES.SPACESEEKER), space_controller_1.SpaceController.getInterestedSpaces);
 router.patch('/:id', (0, auth_1.default)(user_1.USER_ROLES.SPACEPROVIDER), (0, fileUploadHandler_1.default)(), 
 // validateRequest(SpaceValidation.updateSpaceZodSchema),
 space_controller_1.SpaceController.updateSpace);

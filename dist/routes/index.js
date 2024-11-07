@@ -16,6 +16,8 @@ const about_route_1 = require("../app/modules/about/about.route");
 const info_route_1 = require("../app/modules/info/info.route");
 const supportItem_route_1 = require("../app/modules/supportItem/supportItem.route");
 const favourite_route_1 = require("../app/modules/favourite/favourite.route");
+const admin_route_1 = require("../app/modules/user/admin/admin.route");
+const links_route_1 = require("../app/modules/links/links.route");
 const router = express_1.default.Router();
 const apiRoutes = [
     {
@@ -65,6 +67,14 @@ const apiRoutes = [
     {
         path: '/info',
         route: info_route_1.InfoRoute,
+    },
+    {
+        path: '/admin',
+        route: admin_route_1.adminRoutes,
+    },
+    {
+        path: '/link',
+        route: links_route_1.LinksRoutes,
     },
 ];
 apiRoutes.forEach(route => router.use(route.path, route.route));

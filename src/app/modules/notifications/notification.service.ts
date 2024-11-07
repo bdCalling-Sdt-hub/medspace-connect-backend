@@ -21,10 +21,7 @@ const sendNotificationToReceiver = async (
   }
 
   // Publish to Kafka - let the consumer handle Socket.IO notification
-  await kafkaHelper.producer.send({
-    topic: 'notifications',
-    messages: [{ value: JSON.stringify(result) }],
-  });
+  io.emit(`new_notification::${result.receiverId.toString()}`, result);
 
   return result;
 };
@@ -32,7 +29,9 @@ const sendNotificationToReceiver = async (
 const getAllNotificationsFromDB = async (
   receiverId: string
 ): Promise<INotification[]> => {
-  const result = await Notification.find({ receiverId });
+  const result = await Notification.find({ receiverId }).sort({
+    createdAt: -1,
+  });
   return result;
 };
 
@@ -60,13 +59,18 @@ const sendNotificationToAllUserOfARole = async (
 
   const result = await Notification.insertMany(notifications);
 
-  // Publish notifications to Kafka in batches
-  for (let i = 0; i < result.length; i += 100) {
-    const batch = result.slice(i, i + 100);
-    await kafkaHelper.producer.send({
-      topic: 'notifications',
-      messages: batch.map(notif => ({ value: JSON.stringify(notif) })),
-    });
+  // Publish notifications to Socket.IO in batches
+  const batchSize = 100;
+  for (let i = 0; i < result.length; i += batchSize) {
+    const batch = result.slice(i, i + batchSize);
+    await Promise.all(
+      batch.map(async (notification: any) => {
+        io.emit(
+          `new_notification::${notification.receiverId.toString()}`,
+          notification
+        );
+      })
+    );
   }
 
   return result;

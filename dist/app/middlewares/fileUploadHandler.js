@@ -28,6 +28,9 @@ const fileUploadHandler = () => {
                 case 'image':
                     uploadDir = path_1.default.join(baseUploadDir, 'images');
                     break;
+                case 'icon':
+                    uploadDir = path_1.default.join(baseUploadDir, 'icons');
+                    break;
                 case 'profile':
                     uploadDir = path_1.default.join(baseUploadDir, 'profiles');
                     break;
@@ -72,6 +75,7 @@ const fileUploadHandler = () => {
         if (file.fieldname === 'image' ||
             file.fieldname === 'spaceImages' ||
             file.fieldname === 'banner' ||
+            file.fieldname === 'icon' ||
             file.fieldname === 'profile' ||
             file.fieldname === 'aboutImage') {
             if (file.mimetype === 'image/jpeg' ||
@@ -134,6 +138,7 @@ const fileUploadHandler = () => {
         { name: 'spaceImages', maxCount: 4 },
         { name: 'banner', maxCount: 1 },
         { name: 'media', maxCount: 3 },
+        { name: 'icon', maxCount: 1 },
         { name: 'doc', maxCount: 3 },
         { name: 'profile', maxCount: 1 },
         { name: 'messageFiles', maxCount: 5 },

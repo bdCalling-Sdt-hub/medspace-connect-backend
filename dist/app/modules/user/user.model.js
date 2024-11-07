@@ -25,6 +25,11 @@ const userSchema = new mongoose_1.Schema({
         type: String,
         required: true,
     },
+    adminType: {
+        type: String,
+        enum: user_1.ADMIN_TYPES,
+        required: false,
+    },
     banner: {
         type: String,
         required: false,
@@ -43,7 +48,7 @@ const userSchema = new mongoose_1.Schema({
     },
     contact: {
         type: String,
-        required: true,
+        required: false,
     },
     password: {
         type: String,

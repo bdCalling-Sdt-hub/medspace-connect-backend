@@ -66,7 +66,47 @@ const startConversation = async (
     },
     date: humanReadableDate,
   };
-  io.emit(`conversation::${newConversation._id}`, fullMessageData);
+  io.emit(`conversations::${newConversation._id}`, fullMessageData);
+  await NotificationService.sendNotificationToReceiver(
+    {
+      title: 'A User is interested in your space',
+      message: `${spaceSeeker.name} is interested in your space ${space.title}`,
+      receiverId: space.providerId,
+      type: 'normal',
+      data: {
+        conversationId: newConversation._id,
+        post: space,
+      },
+    },
+    io
+  );
+  await NotificationService.sendNotificationToAllUserOfARole(
+    {
+      title: 'A new conversation started',
+      message: `${spaceSeeker.name} is interested space ${space.title}`,
+      type: 'normal',
+      data: {
+        conversationId: newConversation._id,
+        post: space,
+      },
+    },
+    USER_ROLES.ADMIN,
+    io
+  );
+  const conversationData = await Conversation.findById(newConversation._id);
+  const provider = await User.findById(space.providerId);
+  const finalConversationData = {
+    profile: provider?.profile || '/profiles/default.png',
+    name: provider?.name || 'Unknown',
+    occupation: provider?.occupation || 'Unknown',
+    //@ts-ignore
+    conversationStarted: conversationData?.createdAt,
+    conversationId: conversationData?._id,
+  };
+  io.emit(
+    `new_conversation::${space.providerId}`,
+    JSON.stringify(finalConversationData)
+  );
   return newConversation;
 };
 
@@ -137,12 +177,7 @@ const sendMessageToDB = async (
     mediaFiles
   );
 
-  // Publish message to Kafka
-  await kafkaHelper.producer.send({
-    topic: 'new-messages',
-    messages: [{ value: JSON.stringify(newMessage) }],
-  });
-
+  await io.emit(`new_message::${conversationId}`, newMessage);
   // Check if the recipient is not currently viewing the conversation
   const recipientId = newMessage.to;
   if (!isUserViewingConversation(recipientId.toString(), conversationId)) {
@@ -181,33 +216,44 @@ const markMessagesAsRead = async (
     { status: 'read' }
   );
 
-  if (updatedMessages.modifiedCount > 0) {
-    // Publish to Kafka
-    await kafkaHelper.producer.send({
-      topic: 'messages-read',
-      messages: [{ value: JSON.stringify({ conversationId, userId }) }],
-    });
-
-    // Clear notifications related to this conversation for this user
-    await NotificationService.clearNotifications(userId, 'new_message', {
-      conversationId,
-    });
-  }
-
-  const allMessages = await Message.find({
-    conversationID: conversationId,
-    to: userId,
-  });
-  return allMessages;
+  return updatedMessages;
 };
 
-const getUserConversations = async (
-  userId: string
-): Promise<IConversation[]> => {
+const getUserConversations = async (userId: string): Promise<any> => {
+  const isExistUser = await User.findById(userId);
+  if (!isExistUser) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+  }
   const conversations = await Conversation.find({
     $or: [{ spaceSeeker: userId }, { spaceProvider: userId }],
-  }).populate('spaceId spaceSeeker spaceProvider');
-  return conversations;
+  }).sort({ createdAt: -1 });
+  let finalResult: any = [];
+  await Promise.all(
+    conversations.map(async conversation => {
+      if (isExistUser.role === USER_ROLES.SPACESEEKER) {
+        const isExistProvider = await User.findById(conversation.spaceProvider);
+        finalResult.push({
+          profile: isExistProvider?.profile || '/profiles/default.png',
+          name: isExistProvider?.name || 'Unknown',
+          occupation: isExistProvider?.occupation || 'Unknown',
+          //@ts-ignore
+          conversationStarted: conversation.createdAt,
+          conversationId: conversation._id,
+        });
+      } else {
+        const isExistSeeker = await User.findById(conversation.spaceSeeker);
+        finalResult.push({
+          profile: isExistSeeker?.profile || '/profiles/default.png',
+          name: isExistSeeker?.name || 'Unknown',
+          occupation: isExistSeeker?.occupation || 'Unknown',
+          //@ts-ignore
+          conversationStarted: conversation.createdAt,
+          conversationId: conversation._id,
+        });
+      }
+    })
+  );
+  return finalResult;
 };
 
 const deleteConversation = async (
@@ -262,10 +308,18 @@ const searchMessages = async (
   if (!conversation) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
   }
-  const messages = await Message.find({
-    conversationID: conversationId,
-    $text: { $search: query },
-  }).sort({ score: { $meta: 'textScore' } });
+  let messages: any;
+  if (query) {
+    messages = await Message.find({
+      conversationID: conversationId,
+      $text: { $search: query },
+    }).sort({ score: { $meta: 'textScore' } });
+  } else {
+    messages = await Message.find({
+      conversationID: conversationId,
+    });
+  }
+
   return messages;
 };
 

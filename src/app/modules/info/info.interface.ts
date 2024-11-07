@@ -1,7 +1,8 @@
 import { Model } from 'mongoose';
+import { INFO_NAME } from '../../../enums/info';
 
 export type IInfo = {
-  name: string;
+  name: INFO_NAME.USERAGRREEMENT | INFO_NAME.TERMSANDCONDITIONS;
   content: string;
 };
 

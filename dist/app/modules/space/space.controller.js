@@ -130,7 +130,7 @@ const getAllSpaces = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
 }));
 const filterSpaces = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(req.query);
-    const result = yield space_service_1.SpaceService.filterSpacesFromDB(req.query);
+    const result = yield space_service_1.SpaceService.searchAndFilterSpaces(req.query);
     (0, sendResponse_1.default)(res, {
         success: true,
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -175,11 +175,22 @@ const getRecentSpaces = (0, catchAsync_1.default)((req, res) => __awaiter(void 0
         data: result,
     });
 }));
+const getInterestedSpaces = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const userId = req.user.id.toString();
+    const result = yield space_service_1.SpaceService.getInterestedSpacesFromDB(userId);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        message: 'Spaces fetched successfully',
+        data: result,
+    });
+}));
 exports.SpaceController = {
     createSpace,
     updateSpace,
     updateSpaceImages,
     getMySpaces,
+    getInterestedSpaces,
     getSpaceById,
     addSpaceFacilities,
     removeSpaceFacilities,

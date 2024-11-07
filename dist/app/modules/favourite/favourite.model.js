@@ -4,6 +4,6 @@ exports.Favourite = void 0;
 const mongoose_1 = require("mongoose");
 const favouriteSchema = new mongoose_1.Schema({
     spaceId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'Space', required: true },
-    userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'user', required: true },
+    userId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true });
 exports.Favourite = (0, mongoose_1.model)('favourite', favouriteSchema);

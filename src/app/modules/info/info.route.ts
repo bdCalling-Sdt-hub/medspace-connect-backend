@@ -21,6 +21,5 @@ router.patch(
   InfoController.updateInfo
 );
 router.delete('/:id', auth(USER_ROLES.ADMIN), InfoController.deleteInfo);
-router.get('/:name', InfoController.getInfoByName);
 
 export const InfoRoute = router;

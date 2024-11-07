@@ -8,6 +8,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -169,43 +180,92 @@ const getAllSpacesFromDB = (paginationOptions) => __awaiter(void 0, void 0, void
         data: result,
     };
 });
-const filterSpacesFromDB = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const filterableFields = [
-        'title',
-        'price',
-        'status',
-        'priceType',
-        'location',
-        'openingDate',
-        'practiceFor',
-        'facilities',
-        'description',
-    ];
-    const filter = {};
-    Object.keys(query).forEach(key => {
-        if (filterableFields.includes(key)) {
-            if (key === 'facilities') {
-                filter[key] = { $in: query[key].split(',') };
-            }
-            else if (key === 'title' ||
-                key === 'description' ||
-                key === 'location') {
-                filter[key] = { $regex: query[key], $options: 'i' };
-            }
-            else {
-                filter[key] = query[key];
-            }
+const searchAndFilterSpaces = (filterOptions) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { search } = filterOptions, otherFilters = __rest(filterOptions, ["search"]);
+        let baseQuery = { status: space_1.SPACE_STATUS.ACTIVE };
+        // Handle search term if provided
+        if (search) {
+            const searchWords = search.trim().toLowerCase().split(/\s+/);
+            baseQuery.$or = searchWords.map((word) => ({
+                $or: [
+                    { title: { $regex: word, $options: 'i' } },
+                    { description: { $regex: word, $options: 'i' } },
+                    { facilities: { $regex: word, $options: 'i' } },
+                ],
+            }));
         }
-    });
-    if (query.priceRange) {
-        const [min, max] = query.priceRange.split('-');
-        filter.price = { $gte: parseFloat(min), $lte: parseFloat(max) };
+        // Handle other filters
+        const filterableFields = [
+            'price',
+            'priceType',
+            'location',
+            'openingDate',
+            'practiceFor',
+        ];
+        Object.keys(otherFilters).forEach(key => {
+            if (filterableFields.includes(key)) {
+                if (key === 'location') {
+                    baseQuery[key] = { $regex: otherFilters[key], $options: 'i' };
+                }
+                else {
+                    baseQuery[key] = otherFilters[key];
+                }
+            }
+        });
+        // Handle facilities filter
+        if (otherFilters.facilities) {
+            baseQuery.facilities = {
+                $in: otherFilters.facilities
+                    .split(',')
+                    .map((f) => new RegExp(f.trim(), 'i')),
+            };
+        }
+        // Handle price range
+        if (otherFilters.priceRange) {
+            const [min, max] = otherFilters.priceRange.split('-');
+            baseQuery.price = {
+                $gte: parseFloat(min),
+                $lte: parseFloat(max),
+            };
+        }
+        // Fetch spaces with all filters applied
+        const spaces = yield space_model_1.Space.find(baseQuery).populate('providerId').lean();
+        if (search) {
+            // Calculate match scores only if there's a search term
+            const searchWords = search.trim().toLowerCase().split(/\s+/);
+            const rankedSpaces = spaces.map(space => {
+                let matchScore = 0;
+                const spaceText = `${space.title} ${space.description} ${space.facilities.join(' ')}`.toLowerCase();
+                searchWords.forEach((word) => {
+                    if (spaceText.includes(word.toLowerCase())) {
+                        matchScore++;
+                    }
+                });
+                return Object.assign(Object.assign({}, space), { matchScore });
+            });
+            // Sort by match score first, then by date
+            const sortedSpaces = rankedSpaces.sort((a, b) => {
+                if (b.matchScore !== a.matchScore) {
+                    return b.matchScore - a.matchScore;
+                }
+                return (
+                //@ts-ignore
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            });
+            return sortedSpaces.map((_a) => {
+                var { matchScore } = _a, space = __rest(_a, ["matchScore"]);
+                return space;
+            });
+        }
+        // If no search term, just return filtered spaces sorted by date
+        return spaces.sort((a, b) => 
+        //@ts-ignore
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
-    const result = yield space_model_1.Space.find(filter, { status: space_1.SPACE_STATUS.ACTIVE });
-    if (!result.length) {
-        throw new ApiError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, 'No spaces found matching the criteria');
+    catch (error) {
+        throw new ApiError_1.default(http_status_codes_1.StatusCodes.INTERNAL_SERVER_ERROR, 'Error searching and filtering spaces');
     }
-    return result;
 });
 const getProvidersFromDB = () => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield user_model_1.User.find({ role: user_1.USER_ROLES.SPACEPROVIDER }).select('-password -refreshToken -createdAt -updatedAt -role -authorization -verified');
@@ -250,17 +310,56 @@ const getRecentSpacesFromDB = () => __awaiter(void 0, void 0, void 0, function* 
     }
     return result;
 });
+const getInterestedSpacesFromDB = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    const isExistUser = yield user_model_1.User.findById(userId);
+    if (!isExistUser) {
+        throw new ApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, 'User not found!');
+    }
+    const interestedSpaces = yield conversation_model_1.Conversation.find({
+        spaceSeeker: isExistUser._id,
+    }).populate({
+        path: 'spaceId',
+        populate: { path: 'providerId' },
+    });
+    if (!interestedSpaces) {
+        throw new ApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, 'Spaces not found!');
+    }
+    const finalResult = interestedSpaces.map((item) => {
+        const conversationStarted = new Date(item.createdAt);
+        const todaysDate = new Date();
+        const totalDays = Math.floor((todaysDate.getTime() - conversationStarted.getTime()) /
+            (1000 * 60 * 60 * 24));
+        // Calculate months and remaining days
+        const months = Math.floor(totalDays / 30);
+        const remainingDays = totalDays % 30;
+        // Create appropriate string based on months and days
+        let activeSince = '';
+        if (months > 0 && remainingDays > 0) {
+            activeSince = `${months} month${months > 1 ? 's' : ''} and ${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
+        }
+        else if (months > 0) {
+            activeSince = `${months} month${months > 1 ? 's' : ''}`;
+        }
+        else {
+            activeSince = `${remainingDays} day${remainingDays > 1 ? 's' : ''}`;
+        }
+        const finalData = Object.assign(Object.assign({}, item.spaceId._doc), { activeSince, interestedSince: conversationStarted.toDateString() });
+        return finalData;
+    });
+    return finalResult;
+});
 exports.SpaceService = {
     createSpaceToDB,
     getSpaceStatusFromDB,
     updateSpaceToDB,
     updateSpaceImagesToDB,
     addSpaceFacilitiesToDB,
-    filterSpacesFromDB,
+    searchAndFilterSpaces,
     removeSpaceFacilitiesToDB,
     getMySpacesFromDB,
     getSpaceByIdFromDB,
     getAllSpacesFromDB,
     getProvidersFromDB,
     getRecentSpacesFromDB,
+    getInterestedSpacesFromDB,
 };

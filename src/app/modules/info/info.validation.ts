@@ -1,15 +1,20 @@
 import { z } from 'zod';
+import { INFO_NAME } from '../../../enums/info';
 
 const createInfoZodSchema = z.object({
   body: z.object({
-    name: z.string({ required_error: 'Name is required' }),
-    content: z.string({ required_error: 'Content is required' }),
+    name: z.enum([INFO_NAME.USERAGRREEMENT, INFO_NAME.TERMSANDCONDITIONS], {
+      required_error: 'Name is required',
+    }),
+    content: z.string({ required_error: 'Content is required' }).regex(/.*/),
   }),
 });
 const updateInfoZodSchema = z.object({
   body: z.object({
-    name: z.string().optional(),
-    content: z.string().optional(),
+    name: z
+      .enum([INFO_NAME.USERAGRREEMENT, INFO_NAME.TERMSANDCONDITIONS])
+      .optional(),
+    content: z.string().regex(/.*/).optional(),
   }),
 });
 
