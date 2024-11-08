@@ -5,7 +5,7 @@ export type IMessage = {
   to: Types.ObjectId;
   conversationID: Types.ObjectId;
   spaceID: Types.ObjectId;
-  message: string;
+  message?: string;
   status?: 'unread' | 'read';
   data: object;
   date: string;

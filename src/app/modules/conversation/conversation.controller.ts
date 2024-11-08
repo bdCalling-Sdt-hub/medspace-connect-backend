@@ -119,8 +119,8 @@ const markMessagesAsRead = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getUserConversations = catchAsync(async (req: Request, res: Response) => {
-  const userId = req.user.id;
-  const result = await ConversationService.getUserConversations(userId);
+  const user = req.user;
+  const result = await ConversationService.getUserConversations(user);
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,

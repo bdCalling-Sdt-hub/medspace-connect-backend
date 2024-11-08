@@ -26,6 +26,7 @@ const startConsumer = async (groupId: string, io: Server) => {
       await kafkaHelper.newMessageConsumer.subscribe({
         topic: 'new-messages',
         fromBeginning: true,
+        //@ts-ignore
         groupId: groupId,
         maxBatchSize: MAX_BATCH_SIZE,
         maxBatchBytes: MAX_BATCH_BYTES,

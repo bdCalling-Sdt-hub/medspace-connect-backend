@@ -5,6 +5,7 @@ const conversationSchema = new Schema<IConversation>(
   {
     spaceSeeker: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     spaceProvider: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    isRead: { type: Boolean, default: false },
     spaceId: { type: Schema.Types.ObjectId, ref: 'Space', required: true },
   },
   { timestamps: true }

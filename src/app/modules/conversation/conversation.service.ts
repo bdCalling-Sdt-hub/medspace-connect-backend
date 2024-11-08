@@ -13,6 +13,7 @@ import { convertISOToHumanReadable } from '../../../shared/dateHelper';
 import { kafkaHelper } from '../../../helpers/kafkaHelper';
 import { NotificationService } from '../notifications/notification.service';
 import { isUserViewingConversation } from '../../../helpers/socketHelper';
+import { JwtPayload } from 'jsonwebtoken';
 
 const startConversation = async (
   spaceSeekerUserId: string,
@@ -56,17 +57,21 @@ const startConversation = async (
     currentDate.toISOString()
   );
   const fullMessageData: IMessage = {
-    from: new Types.ObjectId(space.providerId),
-    to: new Types.ObjectId(spaceSeekerUserId),
+    from: new Types.ObjectId(spaceSeekerUserId),
+    to: new Types.ObjectId(space.providerId),
     conversationID: newConversation._id,
     spaceID: new Types.ObjectId(spaceId),
     message: `${spaceSeeker.name} is interested in talking to you about one of your post`,
     data: {
-      post: space,
+      mediaFiles: [space.spaceImages[0]],
     },
-    date: humanReadableDate,
+    //@ts-ignore
+    date: newConversation.createdAt,
+    //@ts-ignore
+    createdAt: newConversation.createdAt,
   };
-  io.emit(`conversations::${newConversation._id}`, fullMessageData);
+  await Message.create(fullMessageData);
+  io.emit(`new_message::${newConversation._id}`, fullMessageData);
   await NotificationService.sendNotificationToReceiver(
     {
       title: 'A User is interested in your space',
@@ -139,7 +144,17 @@ const addMessage = async (
   if (!conversation) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
   }
-
+  const updateConversationStatus = await Conversation.findByIdAndUpdate(
+    conversationId,
+    { isRead: false },
+    { new: true }
+  );
+  if (!updateConversationStatus) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      'Failed to update conversation'
+    );
+  }
   const newMessage: IMessage = {
     from: new Types.ObjectId(senderId),
     to: new Types.ObjectId(
@@ -159,7 +174,7 @@ const addMessage = async (
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to add message');
   }
-  const messageData = await Message.findById(result._id).populate('from to');
+  const messageData = await Message.findById(result._id);
   return messageData;
 };
 
@@ -179,20 +194,20 @@ const sendMessageToDB = async (
 
   await io.emit(`new_message::${conversationId}`, newMessage);
   // Check if the recipient is not currently viewing the conversation
-  const recipientId = newMessage.to;
-  if (!isUserViewingConversation(recipientId.toString(), conversationId)) {
-    // Send notification
-    await NotificationService.sendNotificationToReceiver(
-      {
-        receiverId: recipientId,
-        title: 'New Message',
-        message: `${newMessage.from.name} sent you a new message`,
-        type: 'new_message',
-        data: { conversationId, messageId: newMessage._id },
-      },
-      io
-    );
-  }
+  // const recipientId = newMessage.to;
+  // if (!isUserViewingConversation(recipientId.toString(), conversationId)) {
+  //   // Send notification
+  //   await NotificationService.sendNotificationToReceiver(
+  //     {
+  //       receiverId: recipientId,
+  //       title: 'New Message',
+  //       message: `${newMessage.from.name} sent you a new message`,
+  //       type: 'new_message',
+  //       data: { conversationId, messageId: newMessage._id },
+  //     },
+  //     io
+  //   );
+  // }
 
   return newMessage;
 };
@@ -202,15 +217,16 @@ const markMessagesAsRead = async (
   userId: string,
   io: Server
 ): Promise<any> => {
-  const conversation = await getConversation(conversationId, userId);
+  console.log(conversationId, userId);
+  const conversation = await Conversation.findById(conversationId);
   if (!conversation) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
   }
+  await Conversation.findByIdAndUpdate(conversationId, { isRead: true });
 
   const updatedMessages: any = await Message.updateMany(
     {
-      conversationID: conversationId,
-      to: userId,
+      $or: [{ to: userId, from: userId }],
       status: 'unread',
     },
     { status: 'read' }
@@ -219,40 +235,48 @@ const markMessagesAsRead = async (
   return updatedMessages;
 };
 
-const getUserConversations = async (userId: string): Promise<any> => {
-  const isExistUser = await User.findById(userId);
+const getUserConversations = async (user: JwtPayload): Promise<any> => {
+  const isExistUser = await User.findById(user.id);
   if (!isExistUser) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
   }
   const conversations = await Conversation.find({
-    $or: [{ spaceSeeker: userId }, { spaceProvider: userId }],
-  }).sort({ createdAt: -1 });
-  let finalResult: any = [];
-  await Promise.all(
+    $or: [{ spaceSeeker: user.id }, { spaceProvider: user.id }],
+  })
+    .sort({ createdAt: -1 })
+    .populate({
+      path:
+        user.role === USER_ROLES.SPACEPROVIDER
+          ? 'spaceSeeker'
+          : 'spaceProvider',
+      select: 'name profile occupation',
+    })
+    .lean();
+  const finalResult = await Promise.all(
     conversations.map(async conversation => {
-      if (isExistUser.role === USER_ROLES.SPACESEEKER) {
-        const isExistProvider = await User.findById(conversation.spaceProvider);
-        finalResult.push({
-          profile: isExistProvider?.profile || '/profiles/default.png',
-          name: isExistProvider?.name || 'Unknown',
-          occupation: isExistProvider?.occupation || 'Unknown',
-          //@ts-ignore
-          conversationStarted: conversation.createdAt,
-          conversationId: conversation._id,
-        });
-      } else {
-        const isExistSeeker = await User.findById(conversation.spaceSeeker);
-        finalResult.push({
-          profile: isExistSeeker?.profile || '/profiles/default.png',
-          name: isExistSeeker?.name || 'Unknown',
-          occupation: isExistSeeker?.occupation || 'Unknown',
-          //@ts-ignore
-          conversationStarted: conversation.createdAt,
-          conversationId: conversation._id,
-        });
-      }
+      const lastMessage = await Message.find({
+        conversationID: conversation._id,
+      })
+        .sort({ createdAt: -1 })
+        .limit(1);
+      const conversationUser =
+        user.role === USER_ROLES.SPACEPROVIDER
+          ? conversation.spaceSeeker
+          : conversation.spaceProvider;
+      return {
+        // @ts-ignore
+        profile: conversationUser.profile,
+        // @ts-ignore
+        name: conversationUser.name,
+        // @ts-ignore
+        occupation: conversationUser.occupation,
+        conversationId: conversation._id.toString(),
+        read: conversation.isRead,
+        lastMessage: lastMessage[0] || null,
+      };
     })
   );
+
   return finalResult;
 };
 
@@ -308,6 +332,18 @@ const searchMessages = async (
   if (!conversation) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');
   }
+  //@ts-ignore
+  await Conversation.findByIdAndUpdate(conversation._id, {
+    isRead: true,
+  });
+  await Message.updateMany(
+    {
+      conversationID: conversationId,
+      to: userId,
+      status: 'unread',
+    },
+    { status: 'read' }
+  );
   let messages: any;
   if (query) {
     messages = await Message.find({

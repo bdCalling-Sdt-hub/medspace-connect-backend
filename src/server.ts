@@ -5,10 +5,6 @@ import app from './app';
 import config from './config';
 import { chatNamespace } from './helpers/socketHelper';
 import { errorLogger, logger } from './shared/logger';
-import { kafkaHelper } from './helpers/kafkaHelper';
-import { startMessageConsumer } from './workers/messageConsumer';
-import { startMessageReadConsumer } from './workers/messageReadConsumer';
-import { startNotificationConsumer } from './workers/notificationConsumer';
 
 //uncaught exception
 process.on('uncaughtException', error => {
@@ -22,7 +18,6 @@ async function main() {
     await mongoose.connect(config.database_url as string);
     logger.info(colors.green('🚀 Database connected successfully'));
 
-    await kafkaHelper.connect();
     logger.info(colors.green('🚀 Kafka connected successfully'));
 
     const port =
@@ -43,11 +38,6 @@ async function main() {
     });
     chatNamespace(io);
     app.set('io', io);
-
-    // Start Kafka consumers
-    startMessageConsumer(io);
-    startMessageReadConsumer(io);
-    startNotificationConsumer(io);
   } catch (error) {
     errorLogger.error(
       colors.red('🤢 Failed to connect to Database or Kafka'),

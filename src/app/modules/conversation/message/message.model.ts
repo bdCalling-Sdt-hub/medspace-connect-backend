@@ -29,7 +29,7 @@ const messageSchema = new Schema<IMessage, MessageModel>(
     },
     message: {
       type: String,
-      required: true,
+      required: false,
     },
     data: {
       type: Object,
