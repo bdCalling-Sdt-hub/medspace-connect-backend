@@ -14,6 +14,8 @@ import { kafkaHelper } from '../../../helpers/kafkaHelper';
 import { NotificationService } from '../notifications/notification.service';
 import { isUserViewingConversation } from '../../../helpers/socketHelper';
 import { JwtPayload } from 'jsonwebtoken';
+import { emailHelper } from '../../../helpers/emailHelper';
+import { emailTemplate } from '../../../shared/emailTemplate';
 
 const startConversation = async (
   spaceSeekerUserId: string,
@@ -111,6 +113,15 @@ const startConversation = async (
   io.emit(
     `new_conversation::${space.providerId}`,
     JSON.stringify(finalConversationData)
+  );
+  await emailHelper.sendEmail(
+    emailTemplate.aUserInterested(
+      spaceSeeker.name,
+      provider?.name!,
+      provider?.email!,
+      space.title,
+      space.spaceImages[0]
+    )
   );
   return newConversation;
 };
