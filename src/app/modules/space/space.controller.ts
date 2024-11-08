@@ -50,13 +50,13 @@ const updateSpace = catchAsync(async (req: Request, res: Response) => {
       'You are not authorized to update this space!'
     );
   }
-  let spaceImages: string[] | null = null;
-  if (req.files && 'spaceImages' in req.files) {
-    spaceImages = (req.files.spaceImages as Express.Multer.File[]).map(
+  let addImages: string[] | null = null;
+  if (req.files && 'addImages' in req.files) {
+    addImages = (req.files.addImages as Express.Multer.File[]).map(
       file => `/spaceImages/${file.filename}`
     );
   }
-  data.spaceImages = spaceImages;
+  data.addImages = addImages;
   const result = await SpaceService.updateSpaceToDB(id, data, userId);
   sendResponse(res, {
     success: true,

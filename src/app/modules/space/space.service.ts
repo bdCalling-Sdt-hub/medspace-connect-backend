@@ -89,15 +89,27 @@ const createSpaceToDB = async (
 
 const updateSpaceToDB = async (
   id: string,
-  payload: ISpace,
+  payload: any,
   userId: string
 ): Promise<ISpace> => {
   const isExist = await Space.findById(id);
   if (!isExist) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Space not found!');
   }
-  if (payload.spaceImages === null) {
-    payload.spaceImages = isExist.spaceImages;
+  let imageArray = isExist.spaceImages;
+  if (payload.removeImages && payload.addImages) {
+    imageArray = imageArray.filter(
+      (image: string) => !payload.removeImages.includes(image)
+    );
+    imageArray = [...imageArray, ...payload.addImages];
+    console.log(imageArray);
+    if (imageArray.length < 4 || imageArray.length > 4) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        'Only 4 images are required!'
+      );
+    }
+    await unlinkFile(payload.removeImages);
   }
   if (isExist.providerId.toString() !== userId) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'You are not authorized!');
@@ -110,7 +122,11 @@ const updateSpaceToDB = async (
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid status!');
     }
   }
-  const result = await Space.findByIdAndUpdate(id, payload, { new: true });
+  const result = await Space.findByIdAndUpdate(
+    id,
+    { ...payload, spaceImages: imageArray },
+    { new: true }
+  );
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to update space!');
   }
@@ -221,7 +237,7 @@ const getAllSpacesFromDB = async (paginationOptions: IPaginationOptions) => {
   const { page, limit, skip, sortBy, sortOrder } =
     paginationHelper.calculatePagination(paginationOptions);
 
-  const result = await Space.find()
+  const result = await Space.find({ status: { $ne: SPACE_STATUS.OCCUPIED } })
     .sort({ [sortBy]: sortOrder })
     .skip(skip)
     .limit(limit)
@@ -383,7 +399,7 @@ const getMySpacesFromDB = async (userId: string): Promise<ISpace[]> => {
   return result;
 };
 const getRecentSpacesFromDB = async (): Promise<ISpace[]> => {
-  const result = await Space.find({})
+  const result = await Space.find({ status: { $ne: SPACE_STATUS.OCCUPIED } })
     .sort({ createdAt: -1 })
     .limit(10)
     .populate('providerId');
