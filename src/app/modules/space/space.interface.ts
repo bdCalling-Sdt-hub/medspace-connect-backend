@@ -17,6 +17,7 @@ export type ISpace = {
   location: string;
   openingDate: string;
   speciality?: string;
+  practiceType?: string;
   practiceFor: string;
   facilities: string[];
   description: string;

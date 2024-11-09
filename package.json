@@ -12,7 +12,7 @@
     "module": "node templateHelper/cli/module/createModule.mjs",
     "createModule": "node templateHelper/cli/module/createModule.mjs create",
     "build": "yarn && yarn run tsc",
-    "push": "git add . && git commit -m 'updated' && git push",
+    "push": "git add . && git commit -m 'making some changes' && git push",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

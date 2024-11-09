@@ -69,8 +69,20 @@ const create${capitalizedModuleName} = async (payload: I${capitalizedModuleName}
   return result;
 };
 
-const getAll${capitalizedModuleName}s = async (): Promise<I${capitalizedModuleName}[]> => {
-  return await ${capitalizedModuleName}.find();
+const getAll${capitalizedModuleName}s = async (search: string): Promise<I${capitalizedModuleName}[]> => {
+ let result: any;
+  if (search !== '') {
+    result = await ${capitalizedModuleName}.find({
+      $or: [
+        ${fields.map(field => `{ ${field.name}: { $regex: search, $options: 'i' } }`).join(',\n        ')}
+       
+      ],
+    });
+    return result;
+  } else {
+    result = await ${capitalizedModuleName}.find();
+  }
+  return result;
 };
 
 const get${capitalizedModuleName}ById = async (id: string): Promise<I${capitalizedModuleName} | null> => {
@@ -108,17 +120,19 @@ export const ${capitalizedModuleName}Service = {
     case 'validation':
       return `
 import { z } from 'zod';
-export const ${capitalizedModuleName}Validation = {
-  create${capitalizedModuleName}ZodSchema: z.object({
+ const create${capitalizedModuleName}ZodSchema = z.object({
     body: z.object({
       ${fields.map(field => `${field.name}: z.${field.type.includes('ref')?"string":field.type}({required_error:"${field.name==='Date'?'date':field.name} is required", invalid_type_error:"${field.name} should be type ${field.type.includes('ref')?"objectID or string":field.type}"})`).join(',\n      ')}
     }),
-  }),
-  update${capitalizedModuleName}ZodSchema: z.object({
- body: z.object({
-      ${fields.map(field => `${field.name}: z.${field.type.includes('ref')?"string":field.type}({invalid_type_error:"${field.name} should be type ${field.type.includes('ref')?"objectID or string":field.type}"}).optional()`).join(',\n      ')}
+  });
+ const update${capitalizedModuleName}ZodSchema = z.object({
+    body: z.object({
+      ${fields.map(field => `${field.name}: z.${field.type}({invalid_type_error:"${field.name} should be type ${field.type}"}).optional()`).join(',\n      ')}
     }),
-  }),
+  });
+export const ${capitalizedModuleName}Validation = {
+  create${capitalizedModuleName}ZodSchema,
+  update${capitalizedModuleName}ZodSchema
 };
       `;
     case 'controller':
@@ -140,7 +154,8 @@ const create${capitalizedModuleName} = catchAsync(async (req: Request, res: Resp
 });
 
 const getAll${capitalizedModuleName}s = catchAsync(async (req: Request, res: Response) => {
-  const result = await ${capitalizedModuleName}Service.getAll${capitalizedModuleName}s();
+  const search: any = req.query.search || '';
+  const result = await ${capitalizedModuleName}Service.getAll${capitalizedModuleName}s(search as string);
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
