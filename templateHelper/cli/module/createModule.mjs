@@ -267,5 +267,5 @@ program
     console.log(`Module ${name} created with files:`);
     files.forEach(file => console.log(`- ${file}`));
   });
-
+ 
 program.parse(process.argv);

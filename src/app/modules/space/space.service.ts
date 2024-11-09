@@ -268,6 +268,7 @@ const searchAndFilterSpaces = async (filterOptions: any) => {
         $or: [
           { title: { $regex: word, $options: 'i' } },
           { description: { $regex: word, $options: 'i' } },
+          { location: { $regex: word, $options: 'i' } },
           { facilities: { $regex: word, $options: 'i' } },
         ],
       }));
