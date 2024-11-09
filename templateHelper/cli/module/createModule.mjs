@@ -39,7 +39,15 @@ import { Schema, model } from 'mongoose';
 import { I${capitalizedModuleName}, ${capitalizedModuleName}Model } from './${name}.interface';
 
 const ${name}Schema = new Schema<I${capitalizedModuleName}, ${capitalizedModuleName}Model>({
-  ${fields.map(field => `${field.name}: ${field.type.includes("ref")?`{ type: Schema.Types.ObjectId, ref: '${field.type.split('=>')[1]}', required: true }`:`{ type: ${field.type.replace(field.type[0], field.type[0].toUpperCase())}, required: true }`}`).join(',\n  ')}
+  ${fields.map(field => 
+    field.type.includes('array') 
+      ? `${field.name}: {type: [${field.type.split('=>')[1].replace(field.type.split('=>')[1][0], field.type.split('=>')[1][0].toUpperCase())}], required: true }` 
+      : `${field.name}: ${
+          field.type.includes("ref")
+            ? `{ type: Schema.Types.ObjectId, ref: '${field.type.split('=>')[1]}', required: true }`
+            : `{ type: ${field.type.replace(field.type[0], field.type[0].toUpperCase())}, required: true }`
+        }`
+  ).join(',\n  ')}
 }, { timestamps: true });
 
 export const ${capitalizedModuleName} = model<I${capitalizedModuleName}, ${capitalizedModuleName}Model>('${capitalizedModuleName}', ${name}Schema);
@@ -49,7 +57,7 @@ export const ${capitalizedModuleName} = model<I${capitalizedModuleName}, ${capit
 import { Model, Types } from 'mongoose';
 
 export type I${capitalizedModuleName} = {
-  ${fields.map(field => `${field.name}: ${field.type.includes('ref') ? 'Types.ObjectId' : `${field.type==='date'?'Date':field.type}`};`).join('\n  ')}
+  ${fields.map(field => `${field.name}: ${field.type.includes('ref') ? 'Types.ObjectId' : `${field.type==='date'?'Date':field.type.includes('array')?`Array<${field.type.split('=>')[1].includes('ref') ? 'Types.ObjectId' : field.type.split('=>')[1]}>`:field.type}`};`).join('\n  ')}
 };
 
 export type ${capitalizedModuleName}Model = Model<I${capitalizedModuleName}>;
@@ -74,8 +82,11 @@ const getAll${capitalizedModuleName}s = async (search: string): Promise<I${capit
   if (search !== '') {
     result = await ${capitalizedModuleName}.find({
       $or: [
-        ${fields.map(field => `{ ${field.name}: { $regex: search, $options: 'i' } }`).join(',\n        ')}
-       
+        ${fields.map(field => 
+          field.type.includes('ref') || field.type.includes('date') || field.type.includes('number') || field.type.includes('boolean')
+            ? null 
+            : `{ ${field.name}: { $regex: search, $options: 'i' } }`
+        ).filter(Boolean).join(',\n        ')}
       ],
     });
     return result;
@@ -117,24 +128,35 @@ export const ${capitalizedModuleName}Service = {
   delete${capitalizedModuleName},
 };
       `;
-    case 'validation':
-      return `
-import { z } from 'zod';
- const create${capitalizedModuleName}ZodSchema = z.object({
-    body: z.object({
-      ${fields.map(field => `${field.name}: z.${field.type.includes('ref')?"string":field.type}({required_error:"${field.name==='Date'?'date':field.name} is required", invalid_type_error:"${field.name} should be type ${field.type.includes('ref')?"objectID or string":field.type}"})`).join(',\n      ')}
-    }),
-  });
- const update${capitalizedModuleName}ZodSchema = z.object({
-    body: z.object({
-      ${fields.map(field => `${field.name}: z.${field.type}({invalid_type_error:"${field.name} should be type ${field.type}"}).optional()`).join(',\n      ')}
-    }),
-  });
-export const ${capitalizedModuleName}Validation = {
-  create${capitalizedModuleName}ZodSchema,
-  update${capitalizedModuleName}ZodSchema
-};
-      `;
+      case 'validation':
+        return ` import { z } from 'zod';
+      
+        const create${capitalizedModuleName}ZodSchema = z.object({
+          body: z.object({
+            ${fields.map(field => {
+              if (field.type.includes('array')) {
+                return `${field.name}: z.array(z.${field.type.split('=>')[1]}({ required_error:"${field.name} is required", invalid_type_error:"${field.name} array item should have type ${field.type.split('=>')[1]}" }))`;
+              }
+              return `${field.name}: z.${field.type.includes('ref')?"string":field.type}({ required_error:"${field.name==='Date'?'date':field.name} is required", invalid_type_error:"${field.name} should be type ${field.type.includes('ref')?"objectID or string":field.type}" })`;
+            }).join(',\n      ')}
+          }),
+        });
+      
+        const update${capitalizedModuleName}ZodSchema = z.object({
+          body: z.object({
+            ${fields.map(field => {
+              if (field.type.includes('array')) {
+                return `${field.name}: z.array(z.${field.type.split('=>')[1]}({ invalid_type_error:"${field.name} array item should have type ${field.type.split('=>')[1]}" })).optional()`;
+              }
+              return `${field.name}: z.${field.type.includes('ref')?"string":field.type}({ invalid_type_error:"${field.name} should be type ${field.type}" }).optional()`;
+            }).join(',\n      ')}
+          }),
+        });
+      
+      export const ${capitalizedModuleName}Validation = {
+        create${capitalizedModuleName}ZodSchema,
+        update${capitalizedModuleName}ZodSchema
+      };`;
     case 'controller':
       return `
 import { Request, Response } from 'express';
