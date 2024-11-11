@@ -1,11 +1,8 @@
+// Main CLI code
 import { program } from 'commander';
 import fs from 'fs';
 
-// Function to generate file content based on file type
-const generateFileContent = (fileType, name, capitalizedModuleName, exportName, fields) => {
-  switch (fileType) {
-    case 'route':
-      return `
+const generateRouteTemplate = (name, capitalizedModuleName) => `
 import express from 'express';
 import { ${capitalizedModuleName}Controller } from './${name}.controller';
 import { USER_ROLES } from '../../../enums/user';
@@ -32,38 +29,84 @@ router.patch(
 router.delete('/:id', auth(USER_ROLES.ADMIN), ${capitalizedModuleName}Controller.delete${capitalizedModuleName});
 
 export const ${capitalizedModuleName}Routes = router;
-      `;
-    case 'model':
-      return `
+`;
+
+// templates/model.template.js
+const generateModelTemplate = (name, capitalizedModuleName, fields) => {
+  const generateSchemaFields = fields => {
+    return fields.map(field => {
+      if (field.type.includes('array') && !field.type.includes('ref')) {
+        return `${field.name}: {type: [${field.type.split('=>')[1].replace(field.type.split('=>')[1][0], field.type.split('=>')[1][0].toUpperCase())}], required: true }`;
+      }
+      
+      if (field.type.includes("ref")) {
+        if (field.type.includes('array=>ref')) {
+          return `${field.name}: [{ type: Schema.Types.ObjectId, ref: '${field.type.split('ref=>')[1]}'},]`;
+        }
+        return `${field.name}: { type: Schema.Types.ObjectId, ref: '${field.type.split('=>')[1]}', required: true }`;
+      }
+      
+      return `${field.name}: { type: ${field.type.replace(field.type[0], field.type[0].toUpperCase())}, required: true }`;
+    }).join(',\n  ');
+  };
+
+  return `
 import { Schema, model } from 'mongoose';
 import { I${capitalizedModuleName}, ${capitalizedModuleName}Model } from './${name}.interface';
 
 const ${name}Schema = new Schema<I${capitalizedModuleName}, ${capitalizedModuleName}Model>({
-  ${fields.map(field => 
-    field.type.includes('array') 
-      ? `${field.name}: {type: [${field.type.split('=>')[1].replace(field.type.split('=>')[1][0], field.type.split('=>')[1][0].toUpperCase())}], required: true }` 
-      : `${field.name}: ${
-          field.type.includes("ref")
-            ? `{ type: Schema.Types.ObjectId, ref: '${field.type.split('=>')[1]}', required: true }`
-            : `{ type: ${field.type.replace(field.type[0], field.type[0].toUpperCase())}, required: true }`
-        }`
-  ).join(',\n  ')}
+  ${generateSchemaFields(fields)}
 }, { timestamps: true });
 
 export const ${capitalizedModuleName} = model<I${capitalizedModuleName}, ${capitalizedModuleName}Model>('${capitalizedModuleName}', ${name}Schema);
-      `;
-    case 'interface':
-      return `
+`;
+};
+
+// templates/interface.template.js
+const generateInterfaceTemplate = (name, capitalizedModuleName, fields) => {
+  const generateFieldTypes = fields => {
+    return fields.map(field => {
+      if (field.type.includes('ref')) {
+        return `${field.name}: ${field.type.includes('array=>ref=>') ? '[Types.ObjectId]' : 'Types.ObjectId'}`;
+      }
+      if (field.type === 'date') return `${field.name}: Date`;
+      if (field.type.includes('array')) {
+        const baseType = field.type.split('=>')[1];
+        return `${field.name}: Array<${baseType.includes('ref') ? 'Types.ObjectId' : baseType}>`;
+      }
+      return `${field.name}: ${field.type}`;
+    }).join(';\n  ');
+  };
+
+  return `
 import { Model, Types } from 'mongoose';
 
 export type I${capitalizedModuleName} = {
-  ${fields.map(field => `${field.name}: ${field.type.includes('ref') ? 'Types.ObjectId' : `${field.type==='date'?'Date':field.type.includes('array')?`Array<${field.type.split('=>')[1].includes('ref') ? 'Types.ObjectId' : field.type.split('=>')[1]}>`:field.type}`};`).join('\n  ')}
+  ${generateFieldTypes(fields)}
 };
 
 export type ${capitalizedModuleName}Model = Model<I${capitalizedModuleName}>;
-      `;
-    case 'service':
-      return `
+`;
+};
+
+// templates/service.template.js
+const generateServiceTemplate = (name, capitalizedModuleName, fields) => {
+  const generateSearchFields = fields => {
+    return fields
+      .map(field => {
+        if (field.type.includes('ref') || 
+            field.type.includes('date') || 
+            field.type.includes('number') || 
+            field.type.includes('boolean')) {
+          return null;
+        }
+        return `{ ${field.name}: { $regex: search, $options: 'i' } }`;
+      })
+      .filter(Boolean)
+      .join(',\n        ');
+  };
+
+  return `
 import { StatusCodes } from 'http-status-codes';
 import ApiError from '../../../errors/ApiError';
 import { ${capitalizedModuleName} } from './${name}.model';
@@ -82,11 +125,7 @@ const getAll${capitalizedModuleName}s = async (search: string): Promise<I${capit
   if (search !== '') {
     result = await ${capitalizedModuleName}.find({
       $or: [
-        ${fields.map(field => 
-          field.type.includes('ref') || field.type.includes('date') || field.type.includes('number') || field.type.includes('boolean')
-            ? null 
-            : `{ ${field.name}: { $regex: search, $options: 'i' } }`
-        ).filter(Boolean).join(',\n        ')}
+        ${generateSearchFields(fields)}
       ],
     });
     return result;
@@ -127,38 +166,57 @@ export const ${capitalizedModuleName}Service = {
   update${capitalizedModuleName},
   delete${capitalizedModuleName},
 };
-      `;
-      case 'validation':
-        return ` import { z } from 'zod';
+`;
+};
+
+// templates/validation.template.js
+const generateValidationTemplate = (name, capitalizedModuleName, fields) => {
+  const generateCreateValidationFields = fields => {
+    return fields.map(field => {
+      if (field.type.includes('array=>ref=>')) {
+        return `${field.name}: z.array(z.string({ required_error:"${field.name} is required", invalid_type_error:"${field.name} array item should have type string" }))`;
+      }
+      if (field.type.includes('array')) {
+        return `${field.name}: z.array(z.${field.type.split('=>')[1]}({ required_error:"${field.name} is required", invalid_type_error:"${field.name} array item should have type ${field.type.split('=>')[1]}" }))`;
+      }
+      return `${field.name}: z.${field.type.includes('ref') ? "string" : field.type}({ required_error:"${field.name === 'Date' ? 'date' : field.name} is required", invalid_type_error:"${field.name} should be type ${field.type.includes('ref') ? "objectID or string" : field.type}" })`;
+    }).join(',\n      ');
+  };
+
+  const generateUpdateValidationFields = fields => {
+    return fields.map(field => {
+      if (field.type.includes('array=>ref=>')) {
+        return `${field.name}: z.array(z.string({ invalid_type_error:"${field.name} array item should have type string" })).optional()`;
+      }
+      if (field.type.includes('array')) {
+        return `${field.name}: z.array(z.${field.type.split('=>')[1]}({ invalid_type_error:"${field.name} array item should have type ${field.type.split('=>')[1]}" })).optional()`;
+      }
+      return `${field.name}: z.${field.type.includes('ref') ? "string" : field.type}({ invalid_type_error:"${field.name} should be type ${field.type}" }).optional()`;
+    }).join(',\n      ');
+  };
+
+  return `import { z } from 'zod';
       
-        const create${capitalizedModuleName}ZodSchema = z.object({
-          body: z.object({
-            ${fields.map(field => {
-              if (field.type.includes('array')) {
-                return `${field.name}: z.array(z.${field.type.split('=>')[1]}({ required_error:"${field.name} is required", invalid_type_error:"${field.name} array item should have type ${field.type.split('=>')[1]}" }))`;
-              }
-              return `${field.name}: z.${field.type.includes('ref')?"string":field.type}({ required_error:"${field.name==='Date'?'date':field.name} is required", invalid_type_error:"${field.name} should be type ${field.type.includes('ref')?"objectID or string":field.type}" })`;
-            }).join(',\n      ')}
-          }),
-        });
-      
-        const update${capitalizedModuleName}ZodSchema = z.object({
-          body: z.object({
-            ${fields.map(field => {
-              if (field.type.includes('array')) {
-                return `${field.name}: z.array(z.${field.type.split('=>')[1]}({ invalid_type_error:"${field.name} array item should have type ${field.type.split('=>')[1]}" })).optional()`;
-              }
-              return `${field.name}: z.${field.type.includes('ref')?"string":field.type}({ invalid_type_error:"${field.name} should be type ${field.type}" }).optional()`;
-            }).join(',\n      ')}
-          }),
-        });
-      
-      export const ${capitalizedModuleName}Validation = {
-        create${capitalizedModuleName}ZodSchema,
-        update${capitalizedModuleName}ZodSchema
-      };`;
-    case 'controller':
-      return `
+const create${capitalizedModuleName}ZodSchema = z.object({
+  body: z.object({
+    ${generateCreateValidationFields(fields)}
+  }),
+});
+
+const update${capitalizedModuleName}ZodSchema = z.object({
+  body: z.object({
+    ${generateUpdateValidationFields(fields)}
+  }),
+});
+
+export const ${capitalizedModuleName}Validation = {
+  create${capitalizedModuleName}ZodSchema,
+  update${capitalizedModuleName}ZodSchema
+};`;
+};
+
+// templates/controller.template.js
+const generateControllerTemplate = (name, capitalizedModuleName) => `
 import { Request, Response } from 'express';
 import catchAsync from '../../../shared/catchAsync';
 import sendResponse from '../../../shared/sendResponse';
@@ -223,49 +281,64 @@ export const ${capitalizedModuleName}Controller = {
   update${capitalizedModuleName},
   delete${capitalizedModuleName},
 };
-      `;
-    default:
-      return `
-// Define your ${fileType} logic here
-export const ${exportName} = {};
-      `;
+`;
+
+// File generator configuration
+const fileGenerators = {
+  'route.ts': generateRouteTemplate,
+  'controller.ts': generateControllerTemplate,
+  'service.ts': generateServiceTemplate,
+  'validation.ts': generateValidationTemplate,
+  'interface.ts': generateInterfaceTemplate,
+  'model.ts': generateModelTemplate,
+};
+
+
+
+const generateFileContent = (fileType, name, capitalizedModuleName, exportName, fields) => {
+  const generator = fileGenerators[`${fileType}.ts`];
+  if (!generator) {
+    return `// Define your ${fileType} logic here\nexport const ${exportName} = {};`;
+  }
+  return generator(name, capitalizedModuleName, fields);
+};
+
+const createModule = (name, fields) => {
+  try {
+    const parsedFields = fields.map(field => {
+      const [fieldName, fieldType] = field.split(':');
+      if (!fieldName || !fieldType) {
+        throw new Error(`Invalid field format: ${field}. Expected format: name:type`);
+      }
+      return { name: fieldName, type: fieldType };
+    });
+
+    const moduleDir = `src/app/modules/${name}`;
+    fs.mkdirSync(moduleDir, { recursive: true });
+
+    const files = Object.keys(fileGenerators).map(type => ({
+      path: `${moduleDir}/${name}.${type}`,
+      type: type.split('.')[0]
+    }));
+
+    files.forEach(({ path, type }) => {
+      const capitalizedModuleName = name.charAt(0).toUpperCase() + name.slice(1);
+      const exportName = `${capitalizedModuleName}${type.charAt(0).toUpperCase() + type.slice(1)}`;
+      const content = generateFileContent(type, name, capitalizedModuleName, exportName, parsedFields);
+      fs.writeFileSync(path, content.trim() + '\n');
+      console.log(`Created: ${path}`);
+    });
+
+    console.log(`\nSuccessfully created module '${name}' with all required files.`);
+  } catch (error) {
+    console.error('Error creating module:', error.message);
+    process.exit(1);
   }
 };
 
 program
   .command('create <name> <fields...>')
   .description('Create a new module with specified fields')
-  .action((name, fields) => {
-    const parsedFields = fields.map(field => {
-      const [name, type] = field.split(':');
-      return { name, type};
-    });
+  .action(createModule);
 
-    fs.mkdirSync(`src/app/modules/${name}`, { recursive: true });
-
-    const files = [
-      'route.ts',
-      'controller.ts',
-      'service.ts',
-      'validation.ts',
-      'interface.ts',
-      'model.ts',
-    ].map(type => `src/app/modules/${name}/${name}.${type}`);
-
-    files.forEach(file => {
-      const fileType = file.split('.')[1];
-      const capitalizedModuleName = name[0].toUpperCase() + name.slice(1);
-      const exportName = `${capitalizedModuleName}${fileType[0].toUpperCase() + fileType.slice(1)}`;
-
-      // Generate content using the new function
-      const fileContent = generateFileContent(fileType, name, capitalizedModuleName, exportName, parsedFields).trim();
-
-      // Write content to file
-      fs.writeFileSync(file, fileContent);
-    });
-
-    console.log(`Module ${name} created with files:`);
-    files.forEach(file => console.log(`- ${file}`));
-  });
- 
 program.parse(process.argv);
