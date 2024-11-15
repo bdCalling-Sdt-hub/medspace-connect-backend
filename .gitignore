@@ -4,3 +4,4 @@ node_modules
 /winston
 dist
 /templateHelper
+nexpress.config.js
