@@ -202,11 +202,23 @@ const getAllUsersFromDB = async (role: string, page: number, limit: number) => {
   if (
     role !== USER_ROLES.SPACEPROVIDER &&
     role !== USER_ROLES.SPACESEEKER &&
-    role !== USER_ROLES.ADMIN
+    role !== USER_ROLES.ADMIN &&
+    role !== 'SUBSCRIBED'
   )
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Role not found!');
-  const totalResult = await User.find({ role: role }).countDocuments().lean();
-  let result = await User.find({ role: role })
+  let result: any = null;
+  let totalResult: any = null;
+  if (role === 'SUBSCRIBED') {
+    totalResult = await User.find({ isSubscribed: true }).countDocuments();
+    result = await User.find({ isSubscribed: true })
+      .select(
+        '-password -refreshToken -createdAt -updatedAt -role -authorization -verified'
+      )
+      .skip((page - 1) * limit)
+      .limit(limit);
+  }
+  totalResult = await User.find({ role: role }).countDocuments().lean();
+  result = await User.find({ role: role })
     .select(
       '-password -refreshToken -createdAt -updatedAt -role -authorization -verified'
     )
