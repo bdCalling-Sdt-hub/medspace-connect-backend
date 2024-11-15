@@ -209,13 +209,28 @@ const getAllUsersFromDB = async (role: string, page: number, limit: number) => {
   let result: any = null;
   let totalResult: any = null;
   if (role === 'SUBSCRIBED') {
-    totalResult = await User.find({ isSubscribed: true }).countDocuments();
-    result = await User.find({ isSubscribed: true })
+    totalResult = await User.find({
+      isSubscribed: true,
+      role: USER_ROLES.SPACEPROVIDER,
+    }).countDocuments();
+    result = await User.find({
+      isSubscribed: true,
+      role: USER_ROLES.SPACEPROVIDER,
+    })
       .select(
         '-password -refreshToken -createdAt -updatedAt -role -authorization -verified'
       )
       .skip((page - 1) * limit)
       .limit(limit);
+    return {
+      meta: {
+        page,
+        limit,
+        totalPage: totalResult / limit,
+        total: result.length,
+      },
+      data: result,
+    };
   }
   totalResult = await User.find({ role: role }).countDocuments().lean();
   result = await User.find({ role: role })
