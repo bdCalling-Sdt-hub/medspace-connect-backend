@@ -11,6 +11,7 @@ import { User } from './user.model';
 import { errorLogger } from '../../../shared/logger';
 import { Subscription } from '../subscription/subscription.model';
 import { Space } from '../space/space.model';
+import { populate } from 'dotenv';
 
 const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
   //set role
@@ -221,7 +222,12 @@ const getAllUsersFromDB = async (role: string, page: number, limit: number) => {
         '-password -refreshToken -createdAt -updatedAt -role -authorization -verified'
       )
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .populate({
+        path: 'subscription',
+        populate: { path: 'package' },
+      });
+
     return {
       meta: {
         page,
