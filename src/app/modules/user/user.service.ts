@@ -198,9 +198,28 @@ const userStatisticFromDB = async (year: number): Promise<IUser[]> => {
 
   return months;
 };
+const getAllUsersFromDB = async (role: string, page: number, limit: number) => {
+  if (
+    role !== USER_ROLES.SPACEPROVIDER &&
+    role !== USER_ROLES.SPACESEEKER &&
+    role !== USER_ROLES.ADMIN
+  )
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Role not found!');
+  const result = await User.find({ role: role })
+    .select(
+      '-password -refreshToken -createdAt -updatedAt -role -authorization -verified'
+    )
+    .skip((page - 1) * limit)
+    .limit(limit);
+  if (!result) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Users not found!');
+  }
+  return result;
+};
 export const UserService = {
   createUserToDB,
   getUserProfileFromDB,
   updateProfileToDB,
   userStatisticFromDB,
+  getAllUsersFromDB,
 };

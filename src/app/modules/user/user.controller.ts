@@ -89,11 +89,23 @@ const userStatistic = catchAsync(async (req: Request, res: Response) => {
     data: result,
   });
 });
-
+const getAllUsers = catchAsync(async (req: Request, res: Response) => {
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+  const role = req.params.role.toUpperCase();
+  const result = await UserService.getAllUsersFromDB(role, page, limit);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: 'Users fetched successfully',
+    data: result,
+  });
+});
 export const UserController = {
   createUser,
   getUserProfile,
   updateProfile,
   registerDeviceToken,
+  getAllUsers,
   userStatistic,
 };

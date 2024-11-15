@@ -26,6 +26,11 @@ router
     UserController.updateProfile
   );
 router.get(
+  '/all-users/:role',
+  auth(USER_ROLES.ADMIN),
+  UserController.getAllUsers
+);
+router.get(
   '/user-statistic',
   auth(USER_ROLES.ADMIN),
   UserController.userStatistic
