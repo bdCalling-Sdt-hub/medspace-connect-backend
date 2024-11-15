@@ -205,7 +205,7 @@ const getAllUsersFromDB = async (role: string, page: number, limit: number) => {
     role !== USER_ROLES.ADMIN
   )
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Role not found!');
-
+  const totalResult = await User.find({ role: role }).countDocuments().lean();
   let result = await User.find({ role: role })
     .select(
       '-password -refreshToken -createdAt -updatedAt -role -authorization -verified'
@@ -217,7 +217,12 @@ const getAllUsersFromDB = async (role: string, page: number, limit: number) => {
   }
 
   return {
-    meta: { total: await User.countDocuments(), role, page, limit },
+    meta: {
+      page,
+      limit,
+      totalPage: totalResult / limit,
+      total: result.length,
+    },
     data: result,
   };
 };

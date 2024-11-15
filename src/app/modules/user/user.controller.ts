@@ -98,7 +98,8 @@ const getAllUsers = catchAsync(async (req: Request, res: Response) => {
     success: true,
     statusCode: StatusCodes.OK,
     message: 'Users fetched successfully',
-    data: result,
+    data: result.data,
+    pagination: result.meta,
   });
 });
 export const UserController = {
