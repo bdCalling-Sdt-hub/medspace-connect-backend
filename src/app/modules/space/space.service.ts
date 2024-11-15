@@ -362,10 +362,16 @@ const searchAndFilterSpaces = async (filterOptions: any) => {
     );
   }
 };
-const getProvidersFromDB = async (): Promise<IUser[]> => {
-  const result = await User.find({ role: USER_ROLES.SPACEPROVIDER }).select(
-    '-password -refreshToken -createdAt -updatedAt -role -authorization -verified'
-  );
+const getProvidersFromDB = async (
+  page: number,
+  limit: number
+): Promise<IUser[]> => {
+  const result = await User.find({ role: USER_ROLES.SPACEPROVIDER })
+    .select(
+      '-password -refreshToken -createdAt -updatedAt -role -authorization -verified'
+    )
+    .skip((page - 1) * limit)
+    .limit(limit);
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Providers not found!');
   }

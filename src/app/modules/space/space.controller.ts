@@ -152,7 +152,9 @@ const filterSpaces = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const getProviders = catchAsync(async (req: Request, res: Response) => {
-  const result = await SpaceService.getProvidersFromDB();
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+  const result = await SpaceService.getProvidersFromDB(page, limit);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,

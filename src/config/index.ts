@@ -17,6 +17,7 @@ export default {
     name_from_stripe: process.env.NAMEFROMSTRIPE,
   },
   client_url: process.env.CLIENT_URL,
+  client_url2: process.env.CLIENT_URL2,
   jwt: {
     jwt_secret: process.env.JWT_SECRET,
     jwt_expire_in: process.env.JWT_EXPIRE_IN as string,
