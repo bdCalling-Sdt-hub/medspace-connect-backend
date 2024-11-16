@@ -123,6 +123,15 @@ const startConversation = async (
       space.spaceImages[0]
     )
   );
+  await NotificationService.sendNotificationToAllUserOfARole(
+    {
+      title: `${spaceSeeker.name} is interested in ${provider?.name}'s space.`,
+      message: `${spaceSeeker.name} is interested in ${provider?.name}'s space ${space.title}`,
+      data: {},
+    },
+    USER_ROLES.ADMIN,
+    io
+  );
   return newConversation;
 };
 
