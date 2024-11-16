@@ -12,6 +12,7 @@ import { errorLogger } from '../../../shared/logger';
 import { Subscription } from '../subscription/subscription.model';
 import { Space } from '../space/space.model';
 import { populate } from 'dotenv';
+import { NotificationService } from '../notifications/notification.service';
 
 const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
   //set role
@@ -42,7 +43,15 @@ const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
     { _id: createUser._id },
     { $set: { authentication } }
   );
-
+  await NotificationService.sendNotificationToAllUserOfARole(
+    {
+      title: `A New User Registered ${createUser.name}`,
+      message: `A new user registered ${createUser.name} with email ${createUser.email} and role ${createUser.role}`,
+      data: {},
+    },
+    USER_ROLES.ADMIN,
+    io
+  );
   return createUser;
 };
 
