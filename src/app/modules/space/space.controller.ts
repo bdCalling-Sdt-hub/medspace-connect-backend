@@ -6,6 +6,7 @@ import { SpaceService } from './space.service';
 import { SpaceValidation } from './space.validation';
 import ApiError from '../../../errors/ApiError';
 import { USER_ROLES } from '../../../enums/user';
+import { Server } from 'socket.io';
 
 const createSpace = catchAsync(async (req: Request, res: Response) => {
   let spaceData = req.body.data;
@@ -29,8 +30,8 @@ const createSpace = catchAsync(async (req: Request, res: Response) => {
       ? spaceData.facilities
       : [spaceData.facilities],
   };
-
-  const result = await SpaceService.createSpaceToDB(data, id.toString());
+  const io: Server = req.app.get('io');
+  const result = await SpaceService.createSpaceToDB(data, id.toString(), io);
   sendResponse(res, {
     success: true,
     statusCode: StatusCodes.OK,

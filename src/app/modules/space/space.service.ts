@@ -13,10 +13,13 @@ import { IPaginationOptions } from '../../../types/pagination';
 import { paginationHelper } from '../../../helpers/paginationHelper';
 import { Conversation } from '../conversation/conversation.model';
 import mongoose from 'mongoose';
+import { NotificationService } from '../notifications/notification.service';
+import { Server } from 'socket.io';
 
 const createSpaceToDB = async (
   payload: ISpace,
-  id: string
+  id: string,
+  io: Server
 ): Promise<ISpace> => {
   // Check if provider exists
   const isExistProvider: IUser | null = await User.findOne({
@@ -83,7 +86,20 @@ const createSpaceToDB = async (
   if (!result) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Failed to create space!');
   }
-
+  await NotificationService.sendNotificationToAllUserOfARole(
+    {
+      title: `New Space Created by ${isExistProvider.name}`,
+      message: `${isExistProvider.name} has created a new space! with a name of ${result.title}`,
+      data: {
+        id: result._id,
+        title: result.title,
+        spaceId: result._id,
+        spaceProvider: isExistProvider.name,
+      },
+    },
+    USER_ROLES.ADMIN,
+    io
+  );
   return result;
 };
 
