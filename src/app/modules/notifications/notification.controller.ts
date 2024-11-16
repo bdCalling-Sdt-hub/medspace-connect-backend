@@ -61,8 +61,10 @@ const readAllNotifications = catchAsync(async (req: Request, res: Response) => {
 const getAllNotificationsFromDB = catchAsync(
   async (req: Request, res: Response) => {
     const receiverId = req.user.id;
+    const role = req.user.role;
     const result = await NotificationService.getAllNotificationsFromDB(
-      receiverId
+      receiverId,
+      role
     );
     sendResponse(res, {
       success: true,

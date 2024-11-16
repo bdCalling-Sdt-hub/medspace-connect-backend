@@ -27,12 +27,17 @@ const sendNotificationToReceiver = async (
 };
 
 const getAllNotificationsFromDB = async (
-  receiverId: string
-): Promise<INotification[]> => {
+  receiverId: string,
+  role: string
+): Promise<any> => {
   const result = await Notification.find({ receiverId }).sort({
     createdAt: -1,
   });
-  return result;
+  const unreadCount = await Notification.countDocuments({
+    receiverId,
+    status: 'unread',
+  });
+  return { notifications: result, unreadCount };
 };
 
 const sendNotificationToAllUserOfARole = async (
