@@ -6,11 +6,13 @@ import { UserService } from './user.service';
 import { User } from './user.model';
 import ApiError from '../../../errors/ApiError';
 import unlinkFile from '../../../shared/unlinkFile';
+import { Server } from 'socket.io';
 
 const createUser = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { ...userData } = req.body;
-    const result = await UserService.createUserToDB(userData);
+    const io: Server = req.app.get('io');
+    const result = await UserService.createUserToDB(userData, io);
 
     sendResponse(res, {
       success: true,

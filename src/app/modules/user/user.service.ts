@@ -13,8 +13,12 @@ import { Subscription } from '../subscription/subscription.model';
 import { Space } from '../space/space.model';
 import { populate } from 'dotenv';
 import { NotificationService } from '../notifications/notification.service';
+import { Server } from 'socket.io';
 
-const createUserToDB = async (payload: Partial<any>): Promise<IUser> => {
+const createUserToDB = async (
+  payload: Partial<any>,
+  io: Server
+): Promise<IUser> => {
   //set role
   if (!payload.role) {
     payload.role = USER_ROLES.SPACESEEKER;
