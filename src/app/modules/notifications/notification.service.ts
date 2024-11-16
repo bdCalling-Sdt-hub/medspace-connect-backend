@@ -5,7 +5,6 @@ import { INotification } from './notification.interface';
 import { Server } from 'socket.io';
 import { USER_ROLES } from '../../../enums/user';
 import { User } from '../user/user.model';
-import { kafkaHelper } from '../../../helpers/kafkaHelper';
 
 const sendNotificationToReceiver = async (
   notification: INotification,
