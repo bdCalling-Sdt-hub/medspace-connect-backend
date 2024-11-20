@@ -16,6 +16,7 @@ import { isUserViewingConversation } from '../../../helpers/socketHelper';
 import { JwtPayload } from 'jsonwebtoken';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { emailTemplate } from '../../../shared/emailTemplate';
+import { UserService } from '../user/user.service';
 
 const startConversation = async (
   spaceSeekerUserId: string,
@@ -213,6 +214,19 @@ const sendMessageToDB = async (
   );
 
   await io.emit(`new_message::${conversationId}`, newMessage);
+  const user = await User.findById(senderId);
+  if (!user) {
+    throw new ApiError(StatusCodes.NOT_FOUND, 'User not found');
+  }
+  await NotificationService.sendNotificationToReceiver(
+    {
+      title: 'New Message',
+      message: `${user.name} sent you a new message`,
+      receiverId: newMessage.to,
+      data: { conversationId, messageId: newMessage._id },
+    },
+    io
+  );
   // Check if the recipient is not currently viewing the conversation
   // const recipientId = newMessage.to;
   // if (!isUserViewingConversation(recipientId.toString(), conversationId)) {
