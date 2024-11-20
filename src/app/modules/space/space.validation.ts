@@ -10,6 +10,7 @@ const createSpaceZodSchema = z.object({
   practiceFor: z.string({ required_error: 'practiceFor is required' }),
   facilities: z.array(z.string({ required_error: 'facilities is required' })),
   description: z.string({ required_error: 'description is required' }),
+  practiceType: z.string({ required_error: 'practiceType is required' }),
 });
 
 const updateSpaceZodSchema = z.object({
@@ -37,6 +38,9 @@ const updateSpaceZodSchema = z.object({
     .enum([SPACE_STATUS.ACTIVE, SPACE_STATUS.OCCUPIED], {
       invalid_type_error: 'status must be ACTIVE or OCCUPIED',
     })
+    .optional(),
+  practiceType: z
+    .string({ invalid_type_error: 'practiceType must be a string' })
     .optional(),
 });
 
