@@ -297,6 +297,7 @@ const searchAndFilterSpaces = async (filterOptions: any) => {
       'location',
       'openingDate',
       'practiceFor',
+      'practiceType',
     ];
 
     Object.keys(otherFilters).forEach(key => {
