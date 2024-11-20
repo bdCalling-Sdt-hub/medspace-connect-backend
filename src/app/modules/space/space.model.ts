@@ -8,6 +8,7 @@ import { IsPathDefaultUndefined } from 'mongoose/types/inferschematype';
 import { ISpace, SpaceModel } from './space.interface';
 import { User } from '../user/user.model';
 import { SPACE_STATUS } from '../../../enums/space';
+import { PRICETYPE } from '../../../enums/priceType';
 const spaceSchema = new Schema<ISpace, SpaceModel>(
   {
     spaceImages: {
@@ -29,7 +30,7 @@ const spaceSchema = new Schema<ISpace, SpaceModel>(
     },
     priceType: {
       type: String,
-      enum: ['Monthly', 'Yearly'],
+      enum: Object.values(PRICETYPE),
       required: [true, 'Price type is required'],
     },
     status: {

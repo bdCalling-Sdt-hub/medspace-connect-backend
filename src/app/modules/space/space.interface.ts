@@ -1,5 +1,6 @@
 import { Model, Types } from 'mongoose';
 import { SPACE_STATUS } from '../../../enums/space';
+import { PRICETYPE } from '../../../enums/priceType';
 
 export type ISpaceProvider = {
   name: string;
@@ -12,7 +13,12 @@ export type ISpace = {
   providerId: Types.ObjectId;
   title: string;
   price: number;
-  priceType: 'Yearly' | 'Monthly';
+  priceType:
+    | PRICETYPE.HOURLY
+    | PRICETYPE.DAILY
+    | PRICETYPE.WEEKLY
+    | PRICETYPE.MONTHLY
+    | PRICETYPE.YEARLY;
   status?: SPACE_STATUS;
   location: string;
   openingDate: string;
