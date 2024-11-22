@@ -20,7 +20,6 @@ async function main() {
     await mongoose.connect(config.database_url as string);
     logger.info(colors.green('🚀 Database connected successfully'));
     await seedSuperAdmin();
-    logger.info(colors.green('🚀 Kafka connected successfully'));
 
     const port =
       typeof config.port === 'number' ? config.port : Number(config.port);
@@ -42,7 +41,7 @@ async function main() {
     app.set('io', io);
   } catch (error) {
     errorLogger.error(
-      colors.red('🤢 Failed to connect to Database or Kafka'),
+      colors.red('🤢 Failed to connect to Database'),
       error
     );
     process.exit(1);
