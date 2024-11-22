@@ -24,10 +24,7 @@ app.use(
 
 //body parser
 app.use(
-  cors({
-    origin: [config.client_url as string, config.client_url2 as string],
-    credentials: true,
-  })
+  cors()
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
