@@ -21,7 +21,7 @@ const userSchema = new Schema<IUser, UserModal>(
     banner: {
       type: String,
       required: false,
-      default: '/banners/default.png',
+      default: null,
     },
     role: {
       type: String,
@@ -95,7 +95,7 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     profile: {
       type: String,
-      default: '/profiles/default.png',
+      default: null,
     },
 
     status: {
