@@ -40,10 +40,7 @@ async function main() {
     chatNamespace(io);
     app.set('io', io);
   } catch (error) {
-    errorLogger.error(
-      colors.red('🤢 Failed to connect to Database'),
-      error
-    );
+    errorLogger.error(colors.red('🤢 Failed to connect to Database'), error);
     process.exit(1);
   }
 

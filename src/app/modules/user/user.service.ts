@@ -76,10 +76,14 @@ const getUserProfileFromDB = async (
   }).populate('package');
 
   if (!userSubscription) {
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      'You have not bought any package yet!'
-    );
+    return {
+      user: isExistUser,
+      posts: [],
+      //@ts-ignore
+      allowedSpaces: 0,
+      spacesPosted: 0,
+      deadLine: '',
+    };
   }
 
   // Create dates in UTC to match the stored format

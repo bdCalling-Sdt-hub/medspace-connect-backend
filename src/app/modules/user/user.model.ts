@@ -21,7 +21,8 @@ const userSchema = new Schema<IUser, UserModal>(
     banner: {
       type: String,
       required: false,
-      default: null,
+      default:
+        'https://res.cloudinary.com/dulgs9eba/image/upload/v1732253744/Rectangle_5252_tlenzx.png',
     },
     role: {
       type: String,
@@ -95,7 +96,8 @@ const userSchema = new Schema<IUser, UserModal>(
     },
     profile: {
       type: String,
-      default: null,
+      default:
+        'https://res.cloudinary.com/dulgs9eba/image/upload/v1732253091/9ea2f993-7b66-44c4-ad23-7b02daab702e.png',
     },
 
     status: {
