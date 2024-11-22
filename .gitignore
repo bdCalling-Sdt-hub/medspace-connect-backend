@@ -5,3 +5,4 @@ node_modules
 dist
 /templateHelper
 Sparkpress.config.js
+/uploads
