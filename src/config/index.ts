@@ -16,6 +16,10 @@ export default {
     webhook_secret: process.env.STRIPE_WEBHOOK_SECRET,
     name_from_stripe: process.env.NAMEFROMSTRIPE,
   },
+  admin: {
+    email: process.env.ADMIN_EMAIL,
+    password: process.env.ADMIN_PASSWORD,
+  },
   client_url: process.env.CLIENT_URL,
   client_url2: process.env.CLIENT_URL2,
   jwt: {

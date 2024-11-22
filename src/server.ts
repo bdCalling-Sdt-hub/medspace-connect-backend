@@ -5,6 +5,7 @@ import app from './app';
 import config from './config';
 import { chatNamespace } from './helpers/socketHelper';
 import { errorLogger, logger } from './shared/logger';
+import seedSuperAdmin from './workers/seedAdmin';
 
 //uncaught exception
 process.on('uncaughtException', error => {
@@ -18,7 +19,7 @@ async function main() {
   try {
     await mongoose.connect(config.database_url as string);
     logger.info(colors.green('🚀 Database connected successfully'));
-
+    await seedSuperAdmin();
     logger.info(colors.green('🚀 Kafka connected successfully'));
 
     const port =
