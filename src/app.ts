@@ -23,13 +23,7 @@ app.use(
 );
 
 //body parser
-app.use(
-  cors({
-    origin: '*',
-    // origin: [config.client_url as string, config.client_url2 as string],
-    // credentials: true,
-  })
-);
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Stripe webhook route
