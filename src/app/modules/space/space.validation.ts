@@ -4,13 +4,13 @@ import { SPACE_STATUS } from '../../../enums/space';
 const createSpaceZodSchema = z.object({
   title: z.string({ required_error: 'title is required' }),
   price: z.number({ required_error: 'price is required' }),
-  priceType: z.string({ required_error: 'priceType is required' }),
+  priceType: z.string({ required_error: 'price type is required' }),
   location: z.string({ required_error: 'location is required' }),
-  openingDate: z.string({ required_error: 'openingDate is required' }),
-  practiceFor: z.string({ required_error: 'practiceFor is required' }),
+  openingDate: z.string({ required_error: 'opening date is required' }),
+  practiceFor: z.string({ required_error: 'practice for is required' }),
   facilities: z.array(z.string({ required_error: 'facilities is required' })),
   description: z.string({ required_error: 'description is required' }),
-  practiceType: z.string({ required_error: 'practiceType is required' }),
+  practiceType: z.string({ required_error: 'practice Type is required' }),
 });
 
 const updateSpaceZodSchema = z.object({
