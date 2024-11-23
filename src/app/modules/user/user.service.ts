@@ -137,10 +137,18 @@ const updateProfileToDB = async (
   }
 
   //unlink file here
-  if (payload.profile && isExistUser.profile !== '/profiles/default.png') {
+  if (
+    payload.profile &&
+    isExistUser.profile !== '/profiles/default.png' &&
+    isExistUser.profile !== null
+  ) {
     unlinkFile(isExistUser.profile);
   }
-  if (payload.banner && isExistUser.banner !== '/banners/default.png') {
+  if (
+    payload.banner &&
+    isExistUser.banner !== '/banners/default.png' &&
+    isExistUser.banner !== null
+  ) {
     unlinkFile(isExistUser.banner);
   }
   if (payload.profile === null) {
