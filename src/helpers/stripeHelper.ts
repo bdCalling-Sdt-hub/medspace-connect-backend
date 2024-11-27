@@ -15,7 +15,7 @@ const createPaymentLink = async (product: Stripe.Product) => {
     after_completion: {
       type: 'redirect',
       redirect: {
-        url: config.client_url as string,
+        url: 'http://medspaceconnect.com',
       },
     },
   });
