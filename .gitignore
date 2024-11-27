@@ -4,6 +4,6 @@ node_modules
 /winston
 dist
 /templateHelper
-Sparkpress.config.js
+Sparkpress.config.cjs
 uploads
 /uploads
