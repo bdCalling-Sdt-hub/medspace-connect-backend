@@ -12,6 +12,7 @@ const createPaymentLink = async (product: Stripe.Product) => {
         quantity: 1,
       },
     ],
+    allow_promotion_codes: true,
     after_completion: {
       type: 'redirect',
       redirect: {
@@ -66,9 +67,46 @@ const createCheckoutSession = async (
   });
   return session;
 };
+const createCoupon = async (
+  percent_off: number,
+  max_redemptions: number,
+  redeem_by: number
+) => {
+  try {
+    const coupon = await stripe.coupons.create({
+      percent_off,
+      duration: 'once',
+      max_redemptions,
+      redeem_by,
+    });
+    return coupon;
+  } catch (error) {
+    console.error('Coupon creation error:', error);
+    throw error;
+  }
+};
+const createPromotionCode = async (couponId: string, name: string) => {
+  const promotionCode = await stripe.promotionCodes.create({
+    coupon: couponId,
+    code: name,
+  });
 
+  return promotionCode;
+};
+const deleteCoupon = async (couponId: string) => {
+  try {
+    const deletedCoupon = await stripe.coupons.del(couponId);
+    return deletedCoupon;
+  } catch (error) {
+    console.error('Error deleting coupon:', error);
+    throw error;
+  }
+};
 export const stripeHelper = {
   createStripeProduct,
   createCheckoutSession,
+  createCoupon,
+  createPromotionCode,
+  deleteCoupon,
   stripe,
 };

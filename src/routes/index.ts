@@ -15,6 +15,7 @@ import { adminRoutes } from '../app/modules/user/admin/admin.route';
 import { LinksRoutes } from '../app/modules/links/links.route';
 import { PracticeTypeRoutes } from '../app/modules/practiceType/practiceType.route';
 import { PracticeNeedRoutes } from '../app/modules/practiceNeed/practiceNeed.route';
+import { CouponRoutes } from '../app/modules/coupon/coupon.route';
 const router = express.Router();
 
 const apiRoutes = [
@@ -78,6 +79,10 @@ const apiRoutes = [
   {
     path: '/practiceneed',
     route: PracticeNeedRoutes,
+  },
+  {
+    path: '/coupon',
+    route: CouponRoutes,
   },
   {
     path: '/link',
