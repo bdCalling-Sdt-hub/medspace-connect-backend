@@ -21,7 +21,7 @@ app.use(
   express.raw({ type: 'application/json' }),
   handleStripeWebhook
 );
-
+console.log(config.stripe.webhook_secret);
 app.use(
   cors({
     origin: [
