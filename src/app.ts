@@ -22,15 +22,9 @@ app.use(
   handleStripeWebhook
 );
 
-//body parser// Option 1: If you need credentials (cookies, authentication):
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // Allow all origins but maintain credentials
-      callback(null, origin);
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
+    origin: ['https://medspaceconnect.com', 'https://app.medspaceconnect.com'],
     credentials: true,
   })
 );
