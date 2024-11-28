@@ -22,13 +22,19 @@ app.use(
   handleStripeWebhook
 );
 
-//body parser
+//body parser// Option 1: If you need credentials (cookies, authentication):
 app.use(
   cors({
-    origin: [config.client_url as string, config.client_url2 as string],
+    origin: function (origin, callback) {
+      // Allow all origins but maintain credentials
+      callback(null, origin);
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
     credentials: true,
   })
 );
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Stripe webhook route
