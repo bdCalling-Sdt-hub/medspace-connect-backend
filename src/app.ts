@@ -24,7 +24,12 @@ app.use(
 
 app.use(
   cors({
-    origin: ['https://medspaceconnect.com', 'https://app.medspaceconnect.com'],
+    origin: [
+      'https://medspaceconnect.com',
+      'https://app.medspaceconnect.com',
+      'http://192.168.10.19:3000',
+      'http://192.168.10.19:3001',
+    ],
     credentials: true,
   })
 );
