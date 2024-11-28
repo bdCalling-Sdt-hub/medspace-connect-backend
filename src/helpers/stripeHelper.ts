@@ -2,7 +2,7 @@ import Stripe from 'stripe';
 import config from '../config';
 
 const stripe = new Stripe(config.stripe.secret_key as string, {
-  apiVersion: '2024-09-30.acacia',
+  apiVersion: '2024-11-20.acacia',
 });
 const createPaymentLink = async (product: Stripe.Product) => {
   const paymentLink = await stripe.paymentLinks.create({
