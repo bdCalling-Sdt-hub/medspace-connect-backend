@@ -17,6 +17,7 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
   let event: Stripe.Event | undefined;
   // Verify the event signature
   try {
+    console.log(webhookSecret);
     // Use raw request body for verification
     event = stripe.webhooks.constructEvent(
       req.body,
