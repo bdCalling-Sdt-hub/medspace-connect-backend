@@ -29,7 +29,7 @@ app.use(
 
 // Stripe webhook must come before any body parsing middleware
 app.post(
-  '/webhook',
+  '/api/stripe/webhook',
   express.raw({ type: 'application/json' }),
   handleStripeWebhook
 );
