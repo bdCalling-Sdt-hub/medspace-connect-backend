@@ -10,23 +10,37 @@ import { handleAccountUpdatedEvent } from '../handlers/handleAccountUpdatedEvent
 import { handleSubscriptionCreated } from '../handlers/handleSubscriptionCreated';
 import { handleSubscriptionDeleted } from '../handlers/handleSubscriptionDeleted';
 import { handleSubscriptionUpdated } from '../handlers/handleSubscriptionUpdated';
+
 const handleStripeWebhook = async (req: Request, res: Response) => {
   // Extract Stripe signature and webhook secret
   const signature = req.headers['stripe-signature'] as string;
   const webhookSecret = config.stripe.webhook_secret as string;
+
+  // Debug logging
+  logger.info('Webhook Request Headers:', req.headers);
+  logger.info('Stripe-Signature:', signature);
+  logger.info('Webhook Secret:', webhookSecret);
+  logger.info('Request Body Type:', typeof req.body);
+  logger.info('Request Body:', req.body);
+
   let event: Stripe.Event | undefined;
+
   // Verify the event signature
   try {
-    console.log(webhookSecret);
-    // Use raw request body for verification
+    // Convert body to string if it's a Buffer
+    const rawBody = req.body instanceof Buffer ? req.body.toString('utf8') : req.body;
+    logger.info('Raw Body:', rawBody);
+
     event = stripe.webhooks.constructEvent(
-      req.body,
-      signature.toString(),
+      rawBody,
+      signature,
       webhookSecret
     );
+
+    logger.info('Event constructed successfully:', event.type);
   } catch (error: any) {
-    // Log the error and send a response back to Stripe
     logger.error(`Webhook signature verification failed: ${error}`);
+    logger.error('Error details:', error);
     return res
       .status(StatusCodes.BAD_REQUEST)
       .send(`Webhook Error: ${error.message}`);
