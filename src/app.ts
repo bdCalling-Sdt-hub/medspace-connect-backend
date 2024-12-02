@@ -19,13 +19,14 @@ app.use(
     origin: [
       'https://medspaceconnect.com',
       'https://app.medspaceconnect.com',
-      '195.35.6.13:5000',
+      'http://195.35.6.13:5000',
       'http://192.168.10.19:3000',
       'http://192.168.10.19:3001',
     ],
     credentials: true,
   })
 );
+
 // Stripe webhook must come before any body parsing middleware
 app.post(
   '/api/stripe/webhook',
@@ -46,6 +47,7 @@ app.use(
   auth(USER_ROLES.SPACEPROVIDER),
   SubscriptionControllers.cancelSubscription
 );
+
 //file retrieve
 app.use(express.static('uploads'));
 
@@ -58,13 +60,7 @@ app.get('/', (req: Request, res: Response) => {
     '<h1 style="text-align:center; color:#A55FEF; font-family:Verdana;">Hey, How can I assist you today!</h1>'
   );
 });
-// app.use((err: any, req: Request, res: Response, next: NextFunction) => {
-//   logger.error(err); // Log the error
-//   res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
-//     success: false,
-//     message: 'An error occurred, please try again later.',
-//   });
-// });
+
 //global error handle
 app.use(globalErrorHandler);
 

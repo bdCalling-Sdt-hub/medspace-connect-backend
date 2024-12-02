@@ -23,15 +23,11 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
       .send('No Stripe signature found');
   }
 
-  let event: Stripe.Event | undefined;
-  console.log(req.body as string);
-  const requestBody = req.body as Buffer;
+  let event: Stripe.Event;
+  console.log(req.body);
   try {
-    event = stripe.webhooks.constructEvent(
-      requestBody,
-      signature,
-      webhookSecret
-    );
+    // The raw body is available because we used express.raw() middleware
+    event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
   } catch (error: any) {
     logger.error(`Webhook signature verification failed: ${error.message}`);
     return res
