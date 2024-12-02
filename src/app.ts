@@ -38,15 +38,17 @@ app.use(
   })
 );
 
+// Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Stripe webhook route
+// Regular routes that need parsed JSON bodies
 app.use(
   '/api/stripe/subscription/cancel',
   auth(USER_ROLES.SPACEPROVIDER),
   SubscriptionControllers.cancelSubscription
 );
+
 //file retrieve
 app.use(express.static('uploads'));
 

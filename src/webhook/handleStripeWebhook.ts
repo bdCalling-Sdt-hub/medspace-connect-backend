@@ -21,12 +21,17 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
   // Verify the event signature
   try {
     // Use raw request body for verification
-    event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
+    const rawBody = req.body;
+    if (typeof rawBody !== 'string' && !Buffer.isBuffer(rawBody)) {
+      throw new Error('Invalid request body format');
+    }
+    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
   } catch (error) {
     // Return an error if verification fails
+    logger.error(`Webhook Error: ${error}`);
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
-      `Webhook signature verification failed. ${error}`
+      `Webhook signature verification failed: ${error}`
     );
   }
 
