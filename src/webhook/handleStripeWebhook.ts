@@ -34,9 +34,8 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
     logger.info('Body is Buffer:', Buffer.isBuffer(req.body));
 
     // Construct the event - req.body should already be a Buffer
-    console.log(req.body);
     const event = stripe.webhooks.constructEvent(
-      req.body,
+      req.body as string,
       signature,
       webhookSecret
     );
