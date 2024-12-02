@@ -14,6 +14,13 @@ import config from './config';
 import bodyParser from 'body-parser';
 
 const app = express();
+
+// Stripe webhook must come before any body parsing middleware
+app.post(
+  '/api/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook
+);
 app.use(
   cors({
     origin: [
@@ -25,13 +32,6 @@ app.use(
     ],
     credentials: true,
   })
-);
-
-// Stripe webhook must come before any body parsing middleware
-app.post(
-  '/api/stripe/webhook',
-  express.raw({ type: 'application/json' }),
-  handleStripeWebhook
 );
 
 //morgan
