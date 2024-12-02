@@ -12,6 +12,7 @@ import { handleSubscriptionDeleted } from '../handlers/handleSubscriptionDeleted
 import { handleAccountUpdatedEvent } from '../handlers/handleAccountUpdatedEvent';
 
 const handleStripeWebhook = async (req: Request, res: Response) => {
+  console.log(req.headers);
   const signature = req.headers['stripe-signature'] as string;
   const webhookSecret = config.stripe.webhook_secret as string;
 
