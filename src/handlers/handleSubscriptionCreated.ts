@@ -13,7 +13,7 @@ export const handleSubscriptionCreated = async (data: Stripe.Subscription) => {
   try {
     // Retrieve the subscription from Stripe
     const subscription = await stripe.subscriptions.retrieve(data.id);
-    console.log(subscription);
+
     // Retrieve the customer associated with the subscription
     const customer = (await stripe.customers.retrieve(
       subscription.customer as string
