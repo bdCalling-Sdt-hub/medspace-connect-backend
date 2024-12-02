@@ -12,50 +12,40 @@ import { handleSubscriptionDeleted } from '../handlers/handleSubscriptionDeleted
 import { handleSubscriptionUpdated } from '../handlers/handleSubscriptionUpdated';
 
 const handleStripeWebhook = async (req: Request, res: Response) => {
-  // Extract Stripe signature and webhook secret
-  logger.info('Request Headers:', req.headers);
-  const signature = req.headers['stripe-signature'] as string;
-  const webhookSecret = config.stripe.webhook_secret as string;
-
-  // Debug logging
-  logger.info('Webhook Request Headers:', req.headers);
-  logger.info('Stripe-Signature:', signature);
-  logger.info('Webhook Secret:', webhookSecret);
-  logger.info('Request Body Type:', typeof req.body);
-  logger.info('Request Body:', req.body);
-
-  let event: Stripe.Event | undefined;
-
-  // Verify the event signature
   try {
-    // Convert body to string if it's a Buffer
-    const rawBody =
-      req.body instanceof Buffer ? req.body.toString('utf8') : req.body;
-    logger.info('Raw Body:', rawBody);
+    const signature = req.headers['stripe-signature'];
 
-    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    if (!signature) {
+      logger.error('No stripe signature in request');
+      return res.status(400).send('No Stripe signature found');
+    }
+
+    const webhookSecret = config.stripe.webhook_secret;
+
+    if (!webhookSecret) {
+      logger.error('No webhook secret configured');
+      return res.status(500).send('Webhook secret not configured');
+    }
+
+    // Log incoming request details
+    logger.info('Received webhook request');
+    logger.info('Signature:', signature);
+    logger.info('Body type:', typeof req.body);
+    logger.info('Body is Buffer:', Buffer.isBuffer(req.body));
+
+    // Construct the event - req.body should already be a Buffer
+    const event = stripe.webhooks.constructEvent(
+      req.body,
+      signature,
+      webhookSecret
+    );
 
     logger.info('Event constructed successfully:', event.type);
-  } catch (error: any) {
-    logger.error(`Webhook signature verification failed: ${error}`);
-    logger.error('Error details:', error);
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .send(`Webhook Error: ${error.message}`);
-  }
 
-  // Check if the event is valid
-  if (!event) {
-    logger.error('Invalid event received!');
-    return res.status(StatusCodes.BAD_REQUEST).send('Invalid event received!');
-  }
+    // Handle the event
+    const data = event.data.object as Stripe.Subscription | Stripe.Account;
+    const eventType = event.type;
 
-  // Extract event data and type
-  const data = event.data.object as Stripe.Subscription | Stripe.Account;
-  const eventType = event.type;
-
-  // Handle the event based on its type
-  try {
     switch (eventType) {
       case 'customer.subscription.created':
         await handleSubscriptionCreated(data as Stripe.Subscription);
@@ -74,18 +64,14 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
         break;
 
       default:
-        // Log unhandled event types
         logger.warn(colors.bgGreen.bold(`Unhandled event type: ${eventType}`));
     }
-  } catch (error) {
-    // Handle errors during event processing
-    logger.error(`Error handling event: ${error}`);
-    // Optionally, you can log the event data for debugging
-    logger.error(`Event data: ${JSON.stringify(data)}`);
-  }
 
-  // Always send a response to Stripe
-  res.sendStatus(200);
+    return res.status(200).json({ received: true });
+  } catch (error: any) {
+    logger.error('Webhook error:', error.message);
+    return res.status(400).send(`Webhook Error: ${error.message}`);
+  }
 };
 
 export default handleStripeWebhook;

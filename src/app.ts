@@ -12,13 +12,22 @@ import { logger } from './shared/logger';
 import { Error } from 'mongoose';
 import config from './config';
 import bodyParser from 'body-parser';
+
 const app = express();
+
 // Stripe webhook must come before any body parsing middleware
 app.post(
   '/api/stripe/webhook',
-  express.raw({ type: 'application/json' }),
+  bodyParser.raw({ type: 'application/json' }),
+  (req, res, next) => {
+    // Log the raw body and headers for debugging
+    logger.info('Headers:', req.headers);
+    logger.info('Raw Body Length:', req.body?.length);
+    next();
+  },
   handleStripeWebhook
 );
+
 //morgan
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);
