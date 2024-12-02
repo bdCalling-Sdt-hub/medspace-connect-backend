@@ -13,10 +13,16 @@ import { Error } from 'mongoose';
 import config from './config';
 import bodyParser from 'body-parser';
 const app = express();
-
+// Stripe webhook must come before any body parsing middleware
+app.post(
+  '/api/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook
+);
 //morgan
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);
+
 app.use(
   cors({
     origin: [
@@ -28,14 +34,10 @@ app.use(
     credentials: true,
   })
 );
-app.post(
-  '/api/stripe/webhook',
-  express.raw({ type: 'application/json' }),
-  handleStripeWebhook
-);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 // Stripe webhook route
 app.use(
   '/api/stripe/subscription/cancel',
