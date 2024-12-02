@@ -11,10 +11,10 @@ export const handleSubscriptionUpdated = async (data: Stripe.Subscription) => {
       stripeSubscriptionId: data.id,
     });
     if (!isExistSubscription) {
-      throw new ApiError(
-        StatusCodes.NOT_FOUND,
-        `Subscription with ID: ${data.id} not found.`
-      );
+      return {
+        subscription: null,
+        user: null,
+      };
     }
     const updatedSubscription = await Subscription.findOneAndUpdate(
       {
@@ -26,10 +26,11 @@ export const handleSubscriptionUpdated = async (data: Stripe.Subscription) => {
     );
 
     if (!updatedSubscription) {
-      throw new ApiError(
-        StatusCodes.NOT_FOUND,
-        `Subscription with ID: ${data.id} not updated.`
-      );
+      console.log(`Subscription with ID: ${data.id} not deleted.`);
+      return {
+        subscription: null,
+        user: null,
+      };
     }
 
     // Use a single query to find and update the user
