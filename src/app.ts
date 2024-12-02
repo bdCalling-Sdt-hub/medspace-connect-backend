@@ -18,13 +18,7 @@ const app = express();
 // Stripe webhook must come before any body parsing middleware
 app.post(
   '/api/stripe/webhook',
-  bodyParser.raw({ type: 'application/json' }),
-  (req, res, next) => {
-    // Log the raw body and headers for debugging
-    logger.info('Headers:', req.headers);
-    logger.info('Raw Body Length:', req.body?.length);
-    next();
-  },
+  express.raw({ type: 'application/json' }),
   handleStripeWebhook
 );
 
