@@ -8,6 +8,15 @@ import { StatusCodes } from 'http-status-codes';
 export const handleSubscriptionDeleted = async (data: Stripe.Subscription) => {
   try {
     // Use a single query to find and update the subscription
+    const isExistSubscription = await Subscription.findOne({
+      stripeSubscriptionId: data.id,
+    });
+    if (!isExistSubscription) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        `Subscription with ID: ${data.id} not found.`
+      );
+    }
     const updatedSubscription = await Subscription.findOneAndUpdate(
       {
         stripeSubscriptionId: data.id,
@@ -20,7 +29,7 @@ export const handleSubscriptionDeleted = async (data: Stripe.Subscription) => {
     if (!updatedSubscription) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
-        `Subscription with ID: ${data.id} not found.`
+        `Subscription with ID: ${data.id} not updated.`
       );
     }
 
