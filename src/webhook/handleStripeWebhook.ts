@@ -24,11 +24,11 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
   }
 
   let event: Stripe.Event | undefined;
-
+  const requestBody = req.rawBody as Buffer;
   try {
     event = stripe.webhooks.constructEvent(
-      req.body,
-      signature.toString(),
+      requestBody,
+      signature,
       webhookSecret
     );
   } catch (error: any) {
