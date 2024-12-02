@@ -79,11 +79,6 @@ export const handleSubscriptionCreated = async (data: Stripe.Subscription) => {
               'Failed to update user subscription'
             );
           }
-          console.log({
-            message: 'Subscription created successfully',
-            subscription: newSubscription,
-            user: purchasedPlan,
-          });
         } else {
           // Pricing plan not found
           throw new ApiError(

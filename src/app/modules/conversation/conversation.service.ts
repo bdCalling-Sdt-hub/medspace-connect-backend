@@ -251,7 +251,6 @@ const markMessagesAsRead = async (
   userId: string,
   io: Server
 ): Promise<any> => {
-  console.log(conversationId, userId);
   const conversation = await Conversation.findById(conversationId);
   if (!conversation) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Conversation not found');

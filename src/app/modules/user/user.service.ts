@@ -108,13 +108,6 @@ const getUserProfileFromDB = async (
     createdAt: { $gte: startDate, $lte: endDate },
   });
 
-  // For debugging
-  console.log({
-    subscriptionCreated: subscriptionDate.toISOString(),
-    periodStart: startDate.toISOString(),
-    periodEnd: endDate.toISOString(),
-  });
-
   const finalResult = {
     user: isExistUser,
     posts: spacesPosted,

@@ -6,7 +6,6 @@ import { ISupportItem } from './supportItem.interface';
 const createSupportItemServiceFunction = async (
   payload: ISupportItem
 ): Promise<ISupportItem> => {
-  console.log(payload);
   const result = await SupportItem.create(payload);
   if (!result) {
     throw new ApiError(

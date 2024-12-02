@@ -11,7 +11,6 @@ import { Server } from 'socket.io';
 const createSpace = catchAsync(async (req: Request, res: Response) => {
   let spaceData = req.body.data;
 
-  console.log(req);
   spaceData = await JSON.parse(spaceData);
   await SpaceValidation.createSpaceZodSchema.parseAsync(spaceData);
   const { id } = req.user;
@@ -44,7 +43,6 @@ const updateSpace = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   const data = req.body;
   const userId = req.user.id;
-  console.log(data);
   if (!req.user || req.user.role !== USER_ROLES.SPACEPROVIDER) {
     throw new ApiError(
       StatusCodes.BAD_REQUEST,
@@ -143,7 +141,6 @@ const getAllSpaces = catchAsync(async (req: Request, res: Response) => {
   });
 });
 const filterSpaces = catchAsync(async (req: Request, res: Response) => {
-  console.log(req.query);
   const result = await SpaceService.searchAndFilterSpaces(req.query);
   sendResponse(res, {
     success: true,

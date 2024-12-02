@@ -56,13 +56,6 @@ const createSpaceToDB = async (
   const endDate = new Date(subscriptionDate);
   endDate.setDate(subscriptionDate.getDate() + 30); // Add exactly 30 days
 
-  // For debugging
-  console.log({
-    subscriptionStart: subscriptionDate.toISOString(),
-    periodStart: startDate.toISOString(),
-    periodEnd: endDate.toISOString(),
-  });
-
   // Find posts in current period
   const posts = await Space.find({
     providerId: id,
@@ -118,7 +111,6 @@ const updateSpaceToDB = async (
       (image: string) => !payload.removeImages.includes(image)
     );
     imageArray = [...imageArray, ...payload.addImages];
-    console.log(imageArray);
     if (imageArray.length < 4 || imageArray.length > 4) {
       throw new ApiError(
         StatusCodes.BAD_REQUEST,
