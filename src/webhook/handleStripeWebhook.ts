@@ -12,29 +12,30 @@ import { handleSubscriptionDeleted } from '../handlers/handleSubscriptionDeleted
 import { handleAccountUpdatedEvent } from '../handlers/handleAccountUpdatedEvent';
 
 const handleStripeWebhook = async (req: Request, res: Response) => {
-  // Extract Stripe signature and webhook secret
   const signature = req.headers['stripe-signature'] as string;
   const webhookSecret = config.stripe.webhook_secret as string;
 
-  let event: Stripe.Event | undefined;
-
-  // Verify the event signature
-  try {
-    // Use raw request body for verification
-    const rawBody = req.body;
-    if (typeof rawBody !== 'string' && !Buffer.isBuffer(rawBody)) {
-      throw new Error('Invalid request body format');
-    }
-    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-  } catch (error) {
-    // Return an error if verification fails
-    logger.error(`Webhook Error: ${error}`);
-    throw new ApiError(
-      StatusCodes.BAD_REQUEST,
-      `Webhook signature verification failed: ${error}`
-    );
+  if (!signature) {
+    logger.error('No Stripe signature found in webhook request');
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .send('No Stripe signature found');
   }
 
+  let event: Stripe.Event | undefined;
+
+  try {
+    event = stripe.webhooks.constructEvent(
+      req.body,
+      signature.toString(),
+      webhookSecret
+    );
+  } catch (error: any) {
+    logger.error(`Webhook signature verification failed: ${error.message}`);
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .send(`Webhook Error: ${error.message}`);
+  }
   // Check if the event is valid
   if (!event) {
     throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid event received!');
