@@ -69,7 +69,7 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
 
     return res.status(200).json({ received: true });
   } catch (error: any) {
-    logger.error('Webhook error:', error.message);
+    logger.error('Webhook error:', error);
     return res.status(400).send(`Webhook Error: ${error.message}`);
   }
 };
