@@ -6,47 +6,41 @@ import ApiError from '../errors/ApiError';
 import { StatusCodes } from 'http-status-codes';
 import { logger } from '../shared/logger';
 import colors from 'colors';
-import { handleAccountUpdatedEvent } from '../handlers/handleAccountUpdatedEvent';
 import { handleSubscriptionCreated } from '../handlers/handleSubscriptionCreated';
-import { handleSubscriptionDeleted } from '../handlers/handleSubscriptionDeleted';
 import { handleSubscriptionUpdated } from '../handlers/handleSubscriptionUpdated';
+import { handleSubscriptionDeleted } from '../handlers/handleSubscriptionDeleted';
+import { handleAccountUpdatedEvent } from '../handlers/handleAccountUpdatedEvent';
 
 const handleStripeWebhook = async (req: Request, res: Response) => {
+  // Extract Stripe signature and webhook secret
+  const signature = req.headers['stripe-signature'] as string;
+  const webhookSecret = config.stripe.webhook_secret as string;
+
+  let event: Stripe.Event | undefined;
+
+  // Verify the event signature
   try {
-    const signature = req.headers['stripe-signature'];
-
-    if (!signature) {
-      logger.error('No stripe signature in request');
-      return res.status(400).send('No Stripe signature found');
-    }
-
-    const webhookSecret = config.stripe.webhook_secret;
-
-    if (!webhookSecret) {
-      logger.error('No webhook secret configured');
-      return res.status(500).send('Webhook secret not configured');
-    }
-
-    // Log incoming request details
-    logger.info('Received webhook request');
-    logger.info('Signature:', signature);
-    logger.info('Body type:', typeof req.body);
-    logger.info('Body is Buffer:', Buffer.isBuffer(req.body));
-    const rawBody = Buffer.from(JSON.stringify(req.body));
-
-    // Construct the event
-    const event = stripe.webhooks.constructEvent(
-      rawBody,
-      signature,
-      webhookSecret
+    // Use raw request body for verification
+    event = stripe.webhooks.constructEvent(req.body, signature, webhookSecret);
+  } catch (error) {
+    // Return an error if verification fails
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      `Webhook signature verification failed. ${error}`
     );
+  }
 
-    logger.info('Event constructed successfully:', event.type);
+  // Check if the event is valid
+  if (!event) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid event received!');
+  }
 
-    // Handle the event
-    const data = event.data.object as Stripe.Subscription | Stripe.Account;
-    const eventType = event.type;
+  // Extract event data and type
+  const data = event.data.object as Stripe.Subscription | Stripe.Account;
+  const eventType = event.type;
 
+  // Handle the event based on its type
+  try {
     switch (eventType) {
       case 'customer.subscription.created':
         await handleSubscriptionCreated(data as Stripe.Subscription);
@@ -62,17 +56,22 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
 
       case 'account.updated':
         await handleAccountUpdatedEvent(data as Stripe.Account);
+
         break;
 
       default:
+        // Log unhandled event types
         logger.warn(colors.bgGreen.bold(`Unhandled event type: ${eventType}`));
     }
-
-    return res.status(200).json({ received: true });
-  } catch (error: any) {
-    logger.error('Webhook error:', error);
-    return res.status(400).send(`Webhook Error: ${error.message}`);
+  } catch (error) {
+    // Handle errors during event processing
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      `Error handling event: ${error}`
+    );
   }
+
+  res.sendStatus(200); // Send success response
 };
 
 export default handleStripeWebhook;
