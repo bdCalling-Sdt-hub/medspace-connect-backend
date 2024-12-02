@@ -13,6 +13,7 @@ import { handleSubscriptionUpdated } from '../handlers/handleSubscriptionUpdated
 
 const handleStripeWebhook = async (req: Request, res: Response) => {
   // Extract Stripe signature and webhook secret
+  logger.info('Request Headers:', req.headers);
   const signature = req.headers['stripe-signature'] as string;
   const webhookSecret = config.stripe.webhook_secret as string;
 
@@ -28,14 +29,11 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
   // Verify the event signature
   try {
     // Convert body to string if it's a Buffer
-    const rawBody = req.body instanceof Buffer ? req.body.toString('utf8') : req.body;
+    const rawBody =
+      req.body instanceof Buffer ? req.body.toString('utf8') : req.body;
     logger.info('Raw Body:', rawBody);
 
-    event = stripe.webhooks.constructEvent(
-      rawBody,
-      signature,
-      webhookSecret
-    );
+    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
 
     logger.info('Event constructed successfully:', event.type);
   } catch (error: any) {
