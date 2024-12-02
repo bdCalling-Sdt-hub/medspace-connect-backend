@@ -24,6 +24,7 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
   }
 
   let event: Stripe.Event | undefined;
+  console.log(req.body as string);
   const requestBody = req.body as Buffer;
   try {
     event = stripe.webhooks.constructEvent(
