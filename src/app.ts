@@ -18,7 +18,7 @@ const app = express();
 // Stripe webhook must come before any body parsing middleware
 app.post(
   '/api/stripe/webhook',
-  express.raw({ type: 'application/json' }),
+  express.json({ type: 'application/json' }),
   handleStripeWebhook
 );
 
