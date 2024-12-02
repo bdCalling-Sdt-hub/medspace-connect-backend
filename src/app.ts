@@ -11,17 +11,12 @@ import auth from './app/middlewares/auth';
 import { logger } from './shared/logger';
 import { Error } from 'mongoose';
 import config from './config';
+import bodyParser from 'body-parser';
 const app = express();
 
 //morgan
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);
-app.use(
-  '/api/stripe/webhook',
-  express.raw({ type: 'application/json' }),
-  handleStripeWebhook
-);
-console.log(config.stripe.webhook_secret);
 app.use(
   cors({
     origin: [
@@ -32,6 +27,11 @@ app.use(
     ],
     credentials: true,
   })
+);
+app.post(
+  '/api/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook
 );
 
 app.use(express.json());
