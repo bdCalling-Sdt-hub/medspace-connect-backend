@@ -14,7 +14,18 @@ import config from './config';
 import bodyParser from 'body-parser';
 
 const app = express();
-
+app.use(
+  cors({
+    origin: [
+      'https://medspaceconnect.com',
+      'https://app.medspaceconnect.com',
+      '195.35.6.13:5000',
+      'http://192.168.10.19:3000',
+      'http://192.168.10.19:3001',
+    ],
+    credentials: true,
+  })
+);
 // Stripe webhook must come before any body parsing middleware
 app.post(
   '/api/stripe/webhook',
@@ -25,18 +36,6 @@ app.post(
 //morgan
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);
-
-app.use(
-  cors({
-    origin: [
-      'https://medspaceconnect.com',
-      'https://app.medspaceconnect.com',
-      'http://192.168.10.19:3000',
-      'http://192.168.10.19:3001',
-    ],
-    credentials: true,
-  })
-);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
