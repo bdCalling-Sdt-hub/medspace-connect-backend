@@ -20,11 +20,9 @@ app.post(
   express.raw({ type: 'application/json' }),
   handleStripeWebhook
 );
-
-// CORS configuration should come first (except for specific raw body routes)
 app.use(
   cors({
-    origin: ['https://medspaceconnect.com', 'https://app.medspaceconnect.com'],
+    origin: /^https:\/\/(app\.)?medspaceconnect\.com$/,
     credentials: true,
   })
 );
