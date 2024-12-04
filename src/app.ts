@@ -20,12 +20,22 @@ app.post(
   express.raw({ type: 'application/json' }),
   handleStripeWebhook
 );
+
+// CORS configuration should come first (except for specific raw body routes)
 app.use(
   cors({
-    origin: 'medspaceconnect.com',
+    origin: [
+      'https://app.medspaceconnect.com',
+      'https://medspaceconnect.com',
+      'http://195.35.6.13:5000',
+      'http://195.35.6.13:3000',
+      'http://192.168.10.19:3000',
+      'http://192.168.10.19:3001',
+    ],
     credentials: true,
   })
 );
+
 //morgan
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);
