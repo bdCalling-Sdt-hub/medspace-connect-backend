@@ -22,7 +22,7 @@ app.post(
 );
 app.use(
   cors({
-    origin: 'https://medspaceconnect.com',
+    origin: 'medspaceconnect.com',
     credentials: true,
   })
 );
