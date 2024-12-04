@@ -24,17 +24,7 @@ app.post(
 // CORS configuration should come first (except for specific raw body routes)
 app.use(
   cors({
-    origin: function (origin, callback) {
-      const allowedOrigins = [
-        'https://medspaceconnect.com',
-        'https://app.medspaceconnect.com',
-      ];
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
+    origin: ['https://medspaceconnect.com', 'https://app.medspaceconnect.com'],
     credentials: true,
   })
 );
