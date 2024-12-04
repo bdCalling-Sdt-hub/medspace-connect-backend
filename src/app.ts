@@ -15,12 +15,7 @@ import bodyParser from 'body-parser';
 
 const app = express();
 
-// Stripe webhook must come before any body parsing middleware
-app.post(
-  '/api/stripe/webhook',
-  express.raw({ type: 'application/json' }),
-  handleStripeWebhook
-);
+// CORS configuration should come first (except for specific raw body routes)
 app.use(
   cors({
     origin: [
@@ -32,6 +27,7 @@ app.use(
       'http://192.168.10.19:3001',
     ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   })
 );
 
@@ -39,8 +35,16 @@ app.use(
 app.use(Morgan.successHandler);
 app.use(Morgan.errorHandler);
 
+// Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Stripe webhook route with raw body parsing
+app.post(
+  '/api/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook
+);
 
 // Stripe webhook route
 app.use(
