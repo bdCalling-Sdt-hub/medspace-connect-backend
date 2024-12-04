@@ -24,13 +24,7 @@ app.post(
 // CORS configuration should come first (except for specific raw body routes)
 app.use(
   cors({
-    origin: [
-      'https://*.medspaceconnect.com',
-      'http://195.35.6.13:5000',
-      'http://195.35.6.13:3000',
-      // 'http://192.168.10.19:3000',
-      // 'http://192.168.10.19:3001',
-    ],
+    origin: 'https://*.medspaceconnect.com',
     credentials: true,
   })
 );
