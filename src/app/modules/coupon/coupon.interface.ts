@@ -5,6 +5,7 @@ export type ICoupon = {
   max_redemptions: number;
   redeem_by: number;
   couponId?: string;
+  usageInterval: string;
   name: string;
 };
 

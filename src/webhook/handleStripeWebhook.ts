@@ -49,18 +49,14 @@ const handleStripeWebhook = async (req: Request, res: Response) => {
       case 'customer.subscription.created':
         await handleSubscriptionCreated(data as Stripe.Subscription);
         break;
-
       case 'customer.subscription.updated':
         await handleSubscriptionUpdated(data as Stripe.Subscription);
         break;
-
       case 'customer.subscription.deleted':
         await handleSubscriptionDeleted(data as Stripe.Subscription);
         break;
-
       case 'account.updated':
         await handleAccountUpdatedEvent(data as Stripe.Account);
-
         break;
 
       default:

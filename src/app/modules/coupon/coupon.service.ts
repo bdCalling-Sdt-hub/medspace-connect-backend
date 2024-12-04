@@ -4,11 +4,19 @@ import { Coupon } from './coupon.model';
 import { ICoupon } from './coupon.interface';
 import { stripeHelper } from '../../../helpers/stripeHelper';
 import Stripe from 'stripe';
+import { COUPON_USAGE_INTERVAL } from '../../../enums/coupons';
 
 const createCoupon = async (payload: ICoupon): Promise<ICoupon> => {
+  if (
+    payload.usageInterval !== COUPON_USAGE_INTERVAL.forever &&
+    payload.usageInterval !== COUPON_USAGE_INTERVAL.once
+  ) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, 'Invalid usageInterval!');
+  }
   const coupon: Stripe.Coupon = await stripeHelper.createCoupon(
     payload.percent_off,
     payload.max_redemptions,
+    payload.usageInterval,
     payload.redeem_by
   );
   if (!coupon) {

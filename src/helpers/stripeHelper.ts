@@ -1,5 +1,6 @@
 import Stripe from 'stripe';
 import config from '../config';
+import { COUPON_USAGE_INTERVAL } from '../enums/coupons';
 
 const stripe = new Stripe(config.stripe.secret_key as string, {
   apiVersion: '2024-11-20.acacia',
@@ -70,12 +71,13 @@ const createCheckoutSession = async (
 const createCoupon = async (
   percent_off: number,
   max_redemptions: number,
+  usageInterval: COUPON_USAGE_INTERVAL.forever | COUPON_USAGE_INTERVAL.once,
   redeem_by: number
 ) => {
   try {
     const coupon = await stripe.coupons.create({
       percent_off,
-      duration: 'once',
+      duration: usageInterval,
       max_redemptions,
       redeem_by,
     });

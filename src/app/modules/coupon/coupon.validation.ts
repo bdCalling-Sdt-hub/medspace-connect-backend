@@ -18,6 +18,10 @@ const createCouponZodSchema = z.object({
       required_error: 'name is required',
       invalid_type_error: 'name should be type string',
     }),
+    usageInterval: z.string({
+      required_error: 'usageInterval is required',
+      invalid_type_error: 'usageInterval should be type string',
+    }),
   }),
 });
 
@@ -31,6 +35,9 @@ const updateCouponZodSchema = z.object({
       .optional(),
     redeem_by: z
       .number({ invalid_type_error: 'redeem_by should be type number' })
+      .optional(),
+    usageInterval: z
+      .string({ invalid_type_error: 'usageInterval should be type string' })
       .optional(),
     name: z
       .string({ invalid_type_error: 'name should be type string' })

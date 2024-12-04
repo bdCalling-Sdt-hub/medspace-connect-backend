@@ -8,6 +8,7 @@ const couponSchema = new Schema<ICoupon, CouponModel>(
     redeem_by: { type: Number, required: true },
     couponId: { type: String, required: false },
     name: { type: String, required: true },
+    usageInterval: { type: String, required: true },
   },
   { timestamps: true }
 );
