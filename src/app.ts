@@ -14,6 +14,12 @@ import config from './config';
 import bodyParser from 'body-parser';
 
 const app = express();
+// Stripe webhook route with raw body parsing
+app.post(
+  '/api/stripe/webhook',
+  express.raw({ type: 'application/json' }),
+  handleStripeWebhook
+);
 
 // CORS configuration should come first (except for specific raw body routes)
 app.use(
@@ -37,13 +43,6 @@ app.use(Morgan.errorHandler);
 // Body parsing middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Stripe webhook route with raw body parsing
-app.post(
-  '/api/stripe/webhook',
-  express.raw({ type: 'application/json' }),
-  handleStripeWebhook
-);
 
 // Stripe webhook route
 app.use(
