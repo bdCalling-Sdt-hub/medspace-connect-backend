@@ -95,19 +95,33 @@ const getSubscribedPackagesfromDB = async (id: string): Promise<any> => {
     _id: isExistUser.subscription.package,
   });
   //@ts-ignore
-  const { start: periodStart, end: periodEnd } = getSubscriptionPeriodDates(new Date(isExistUser.subscription.createdAt));
+  const { start: periodStart, end: periodEnd } = getSubscriptionPeriodDates(
+    //@ts-ignore
+    new Date(isExistUser.subscription.createdAt)
+  );
 
   if (!isExistPackage) {
     throw new ApiError(StatusCodes.NOT_FOUND, 'Package not found');
   }
   const finalResult = {
-  //@ts-ignore
+    //@ts-ignore
     ...isExistPackage._doc,
-    
-    deadline:periodEnd.toLocaleDateString("en-GB",
+    //@ts-ignore
+    subscriptionDate: isExistUser.subscription.createdAt.toLocaleDateString(
+      'en-GB',
       { year: 'numeric', month: 'long', day: 'numeric' }
     ),
-  }
+    periodStart: periodStart.toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }),
+    deadline: periodEnd.toLocaleDateString('en-GB', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }),
+  };
   return finalResult;
 };
 
