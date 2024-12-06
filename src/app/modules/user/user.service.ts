@@ -1,6 +1,6 @@
 import { StatusCodes } from 'http-status-codes';
 import { JwtPayload } from 'jsonwebtoken';
-import { USER_ROLES } from '../../../enums/user';
+import { ADMIN_TYPES, USER_ROLES } from '../../../enums/user';
 import ApiError from '../../../errors/ApiError';
 import { emailHelper } from '../../../helpers/emailHelper';
 import { emailTemplate } from '../../../shared/emailTemplate';
@@ -257,7 +257,12 @@ const getAllUsersFromDB = async (role: string, page: number, limit: number) => {
     };
   }
   totalResult = await User.find({ role: role }).countDocuments().lean();
-  result = await User.find({ role: role })
+  result = await User.find({
+    role: role,
+    ...(role === USER_ROLES.ADMIN && {
+      adminType: { $ne: ADMIN_TYPES.SUPERADMIN },
+    }),
+  })
     .select(
       '-password -refreshToken -createdAt -updatedAt -role -authorization -verified'
     )
