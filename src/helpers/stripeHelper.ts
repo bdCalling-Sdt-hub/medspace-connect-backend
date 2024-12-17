@@ -14,6 +14,7 @@ const createPaymentLink = async (product: Stripe.Product) => {
       },
     ],
     allow_promotion_codes: true,
+    payment_method_types: ['card', 'ideal', 'sepa_debit'],
     after_completion: {
       type: 'redirect',
       redirect: {
