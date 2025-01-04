@@ -4,7 +4,7 @@ import { USER_ROLES } from '../../../enums/user';
 const createUserZodSchema = z.object({
   body: z.object({
     name: z.string({ required_error: 'Name is required' }),
-    contact: z.string({ required_error: 'Contact is required' }),
+    contact: z.string().optional(),
     role: z.enum(
       [USER_ROLES.ADMIN, USER_ROLES.SPACEPROVIDER, USER_ROLES.SPACESEEKER],
       {
