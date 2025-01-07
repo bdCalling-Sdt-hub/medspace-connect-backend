@@ -111,7 +111,7 @@ const updateSpaceToDB = async (
       (image: string) => !payload.removeImages.includes(image)
     );
     imageArray = [...imageArray, ...payload.addImages];
-    if (imageArray.length < 4 || imageArray.length > 4) {
+    if (imageArray.length > 4) {
       throw new ApiError(
         StatusCodes.BAD_REQUEST,
         'Only 4 images are required!'
