@@ -27,6 +27,7 @@ app.use(
     origin: [
       'https://app.medspaceconnect.com',
       'https://medspaceconnect.com',
+      'https://www.medspaceconnect.com',
       'http://195.35.6.13:5000',
       'http://195.35.6.13:3000',
       'http://192.168.10.19:3000',
